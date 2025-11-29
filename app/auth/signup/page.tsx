@@ -29,15 +29,15 @@ export default function SignupPage() {
   };
 
   return (
-    <main className="w-screen h-screen flex justify-center items-center bg-gradient-to-r from-black via-gray-800 via-indigo-900 via-gray-800 to-black px-4">
+    <main className="w-screen h-screen flex justify-center items-center px-4">
   
-        <div className="w-full max-w-md bg-black/60 border border-purple rounded-2xl shadow-2xl backdrop-blur-md p-8">
+        <div className="w-full max-w-md border border-blue-900 rounded-2xl shadow-2xl backdrop-blur-md p-8">
         {/* Logo / Heading */}
-        <h1 className="text-4xl font-extrabold text-center mb-2 bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+        <h1 className="text-4xl text-center mb-2 bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-blue-900">
           HealthPlus 🍃
         </h1>
-        <h3 className="text-lg font-semibold text-center text-gray-300 mb-8 tracking-wide">
-          Create Your Account
+        <h3 className="text-lg  text-center text-blue-800 mb-8 tracking-wide">
+          New User? Create Account
         </h3>
 
         {/* Signup Form */}
@@ -70,14 +70,7 @@ export default function SignupPage() {
             </button>
           </div>
 
-          <select
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            className="w-full rounded-xl border border-gray-700 bg-gray-800 text-gray-100 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
-            <option value="user">User</option>
-            <option value="admin">Admin / Family / Trainer</option>
-          </select>
+          
 
           {err && <p className="text-sm text-red-400">{err}</p>}
 
@@ -99,7 +92,7 @@ export default function SignupPage() {
             👈 Go Back
           </button>
 
-          <p className="text-center sm:text-right">
+          <p className="text-center text-black sm:text-right">
             Already have an account?{" "}
             <a
               className="underline underline-offset-2 text-indigo-400 hover:text-indigo-300 transition"

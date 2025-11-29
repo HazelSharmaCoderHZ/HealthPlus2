@@ -6,107 +6,107 @@ export default function Navbar() {
   return (
     <>
       {/* Header / Navbar */}
-      <header className="top-5 w-full z-20">
-        <nav className="flex flex-col sm:flex-row justify-between items-center max-w-4.5xl mx-auto px-4 sm:px-8 py-3 gap-3 sm:gap-0">
-          
-          {/* Left: Logo */}
-          <div className="flex items-center gap-4">
-            <Link
-              href="/"
-              className="text-xl font-extrabold text-green-500 mr-6 hover:text-green-400 hover:scale-105 transition text-center"
-            >
-              <span className="font-extrabold text-4xl  bg-gradient-to-r from-[#8a58ce] to-[#00CAFF] bg-clip-text text-transparent">
-                +
-              </span>
-              HealthPlus
-            </Link>
-          </div>
+      <header className="fixed inset-x-0 top-0 z-50 backdrop-blur-xl shadow-md">
+  <nav className="max-w-7xl mx-auto px-6 sm:px-8 flex items-center justify-between">
+    <Link href="/" className="flex items-center gap-2 text-blue-600 font-extrabold text-lg">
+      +HealthPlus
+    </Link>
 
-          {/* Right: Nav Links + Theme Toggle */}
-          <div className="flex items-center gap-6">
-            <div className="flex flex-col sm:flex-row space-y-1 sm:space-y-0 sm:space-x-10 text-sm sm:text-base font-semibold items-center">
-              <a
-                href="#about"
-                className="hover:text-green-400 dark:text-black button bg-white/10 rounded-2xl border px-6 py-1 text-black font-bold transition hover:scale-105 duration-300"
-              >
-                About us
-              </a>
-              <Link
-                href="#contact"
-                className="hover:text-green-400 button font-bold transition dark:text-black text-black duration-300 bg-white/10 rounded-2xl border px-6 py-1 shadow-sm hover:scale-105"
-              >
-                Contact Us
-              </Link>
-              <Link
-                href="#services"
-                className="hover:text-green-400 button bg-white/10 dark:text-black rounded-2xl border px-6 py-1 text-black font-bold transition hover:scale-105 duration-300"
-              >
-                Services
-              </Link>
-            </div>
-            <ThemeToggle />
-          </div>
-        </nav>
-      </header>
+    <div className="hidden sm:flex items-center gap-3">
+      <a
+        href="#about"
+        className="inline-flex items-center justify-center px-6 py-2 rounded-full text-sm font-semibold text-blue-600  hover:bg-white/50 transition cursor-pointer"
+        role="button"
+        aria-label="About us"
+      >
+        About us
+      </a>
+
+      <a
+        href="#services"
+        className="inline-flex items-center justify-center px-6 py-2 rounded-full text-sm font-semibold text-blue-600  hover:bg-white/50 transition cursor-pointer"
+        role="button"
+        aria-label="Services"
+      >
+        Services
+      </a>
+
+      <a
+        href="#contact"
+        className="inline-flex items-center justify-center px-6 py-2 rounded-full text-sm font-semibold text-blue-600  hover:bg-white/50 transition cursor-pointer"
+        role="button"
+        aria-label="Contact us"
+      >
+        Contact Us
+      </a>
+
+      <ThemeToggle />
+    </div>
+  </nav>
+</header>
+
 
       {/* Hero / Main Section */}
-      <main className="h-screen flex flex-col md:flex-row items-center justify-center gap-x-28 overflow-x-hidden bg-blue dark:bg-violet-100 px-6 sm:px-12">
-        <div className="flex flex-col flex-grow max-w-4xl justify-center">
-          <h1 className="text-4xl sm:text-7xl mb-5 font-bold mt-6 bg-gradient-to-r from-[#8a58ce] to-[#00CAFF] bg-clip-text text-transparent text-center md:text-left">
-            YOUR HEALTH IS OUR{" "}
-            <br />
-            <span className="text-[#00CAFF] text-6xl sm:text-7xl">
-              {"PRIORITY".split("").map((letter, i) => (
-                <span key={i} className="hover:opacity-0 inline-block">
-                  {letter}
-                </span>
-              ))}
-            </span>
-            .
-          </h1>
+      <main className="relative min-h-screen flex items-center justify-center overflow-hidden">
+<div className="flex flex-col max-w-4xl mx-auto justify-center items-center text-center">
+  <svg
+  className="absolute left-0 top-0 w-full opacity-0"
+  viewBox="0 0 1440 320"
+>
+  <path
+    fill="#BAE6FD"
+    d="M0,160L80,154.7C160,149,320,139,480,117.3C640,96,800,64,960,96C1120,128,1280,224,1360,256L1440,288V0H0Z"
+  ></path>
+</svg>
 
-          <p className="mt-8 text-white text-left dark:text-black max-w-2xl text-[1.2rem] sm:text-[1.4rem]">
-            Personalized diets, continuous monitoring, and intelligent food
-            recommendations. Take control of your health journey today!
-          </p>
+<svg
+  className="absolute bottom-0 left-0 w-full opacity-70 scale-y-[-1]"
+  viewBox="0 0 1440 320"
+>
+  <path
+    fill="#7DD3FC"
+    d="M0,224L80,213.3C160,203,320,181,480,149.3C640,117,800,75,960,90.7C1120,107,1280,181,1360,218.7L1440,256V0H0Z"
+  ></path>
+</svg>
 
-          <Link href="/auth/signup">
-            <button className="mt-10 w-full sm:w-1/4 mx-auto sm:mx-0 block animated-button">
-              <svg viewBox="0 0 24 24" className="arr-2">
-                <path d="M16.1716 10.9999L10.8076 5.63589L12.2218 4.22168L20 11.9999L12.2218 19.778L10.8076 18.3638L16.1716 12.9999H4V10.9999H16.1716Z"></path>
-              </svg>
-              <span className="text">Get started</span>
-              <span className="circle"></span>
-              <svg viewBox="0 0 24 24" className="arr-1">
-                <path d="M16.1716 10.9999L10.8076 5.63589L12.2218 4.22168L20 11.9999L12.2218 19.778L10.8076 18.3638L16.1716 12.9999H4V10.9999H16.1716Z"></path>
-              </svg>
-            </button>
-          </Link>
-        </div>
+    
+    <h1 className="text-6xl sm:text-6xl mb-5 font-bold mt-6 text-blue-900">
+      YOUR HEALTH IS OUR <br />
+      <span className="text-blue-800 font-extrabold text-7xl sm:text-7xl">
+        {"PRIORITY".split("").map((letter, i) => (
+          <span key={i} className="inline-block hover:opacity-0">
+            {letter}
+          </span>
+        ))}
+      </span>.
+    </h1>
 
-        {/* DNA */}
-        <div className="dna hidden mr-20 items-start justify-left md:block max-w-[320px] mt-5 hover:opacity-70">
-          {[...Array(16)].map((_, i) => (
-            <div key={i} className="link">
-              <div></div>
-              <div></div>
-            </div>
-          ))}
-        </div>
-      </main>
+    <Link href="/auth/signup">
+      <button className="mt-10 w-full sm:w-auto min-w-[120px] mx-auto block animated-button">
+
+        
+        <span className="text">Get started ➡️</span>
+        <span className="circle"></span>
+        
+      </button>
+    </Link>
+     
+  </div>
+</main>
+
 
       {/* About Us Section */}
       <section
         id="about"
-        className="min-h-screen flex flex-col justify-center items-center px-6 sm:px-12 py-20 bg-blue dark:bg-violet-300"
+        className="min-h-screen flex flex-col justify-center items-center px-6 sm:px-12 py-20  "
       >
-        <h2 className="text-4xl font-bold text-white dark:text-gray-900 mb-6">
-          About Us<span className="text-cyan-500">.</span>
+        <h2 className="text-4xl font-extrabold text-blue-900 mb-6">
+          About Us.
         </h2>
 
-        <p className="max-w-3xl text-lg text-white font-bold dark:text-gray-800 leading-relaxed text-center">
+        <p className="max-w-3xl text-lg text-black font-bold dark:text-gray-800 leading-relaxed text-center">
           <div className="border-t border-purple mt-5 mb-5"></div>
-          At <span className="text-cyan-500">HealthPlus</span>, we are dedicated to create a collaborative health and wellness platform designed to make well-being a shared journey. It brings families, partners, and communities together by sharing meaningful insights, celebrating progress, and inspiring collective motivation for healthier living. Together, we aim to make health not just a personal goal, but a united experience that strengthens connections and inspires lasting well-being.
+          At <span className="text-blue-500">HealthPlus</span>, we are dedicated to create a collaborative health and wellness platform designed to make well-being a shared journey. It brings families, partners, and communities together by sharing meaningful insights, celebrating progress, and inspiring collective motivation for healthier living. Together, we aim to make health not just a personal goal, but a united experience that strengthens connections and inspires lasting well-being.
         </p>
       </section>
 
@@ -116,9 +116,9 @@ export default function Navbar() {
       {/* Services Section */}
       <section
         id="services"
-        className="relative min-h-screen flex flex-col justify-center items-center px-6 sm:px-12 py-20 bg-black text-white"
+        className="relative min-h-screen flex flex-col justify-center items-center px-6 sm:px-12 py-20 "
       >
-        <h2 className="text-4xl font-bold mb-16 bg-gradient-to-r from-[#8a58ce] to-[#00CAFF] bg-clip-text text-transparent">
+        <h2 className="text-4xl font-bold mb-16 text-blue-900">
           Our Services
         </h2>
 
@@ -136,15 +136,15 @@ export default function Navbar() {
             return (
               <div
                 key={idx}
-                className={`p-8 rounded-2xl bg-gradient-to-br from-[#111111] to-[#1a1a1a] border border-white/10 shadow-lg hover:shadow-xl hover:border-[#00CAFF] transition duration-300 hover:scale-[1.03] ${isSpanAll ? "sm:col-span-2 lg:col-span-3" : ""}`}
+                className={`p-8 rounded-2xl  border border-grey/10 shadow-lg hover:shadow-xl hover:border-[#00CAFF] transition duration-300 hover:scale-[1.03] ${isSpanAll ? "sm:col-span-2 lg:col-span-3" : ""}`}
               >
                 <h3 className="text-xl font-bold mb-3 flex items-center gap-2">
                   <span>{svc.icon}</span>
-                  <span className="bg-gradient-to-r from-[#8a58ce] to-[#00CAFF] bg-clip-text text-transparent">
+                  <span className="text-blue-900">
                     {svc.title}
                   </span>
                 </h3>
-                <p className="text-gray-300 text-sm leading-relaxed">{svc.desc}</p>
+                <p className="text-black text-sm leading-relaxed">{svc.desc}</p>
               </div>
             );
           })}
@@ -154,15 +154,16 @@ export default function Navbar() {
       {/* Contact Us Section (Matches Services Style) */}
       <section
         id="contact"
-        className="relative min-h-screen flex flex-col justify-center items-center px-6 sm:px-12 py-20 bg-black text-white"
+        className="relative min-h-screen flex flex-col justify-center items-center px-6 sm:px-12 py-20 text-black"
       >
-        <h2 className="text-4xl font-bold mb-12 bg-gradient-to-r from-[#8a58ce] to-[#00CAFF] bg-clip-text text-transparent">
-          Contact Us
+        <h2 className="text-4xl font-bold mb-12 text-blue-900 text-center">
+          Connect with us<br></br>We would love to hear from you.
         </h2>
+        
 
         <div className="grid gap-8 sm:grid-cols-3 max-w-4xl w-full">
           {[
-            { icon: "💼", title: "LinkedIn", link: "https://www.linkedin.com/in/arshi-saxena-59268130a/" },
+            { icon: "↗️", title: "Meet our founders", link: "https://www.linkedin.com/in/arshi-saxena-59268130a/" },
             { icon: "🖥️", title: "GitHub", link: "https://github.com/Arshi1101" },
             { icon: "📧", title: "Gmail", link: "mailto:arshisaxena11@gmail.com" },
           ].map((contact, idx) => (
@@ -171,17 +172,23 @@ export default function Navbar() {
               href={contact.link}
               target="_blank"
               rel="noopener noreferrer"
-              className="p-8 rounded-2xl bg-gradient-to-br from-[#111111] to-[#1a1a1a] border border-white/10 shadow-lg hover:shadow-xl hover:border-[#00CAFF] transition duration-300 hover:scale-[1.05] text-center"
+              className="p-8 rounded-2xl bg-transparent border border-grey/20 shadow-lg hover:shadow-xl hover:border-cyan-200 transition duration-300 hover:scale-[1.05] text-center"
             >
               <h3 className="text-xl font-bold mb-2 flex justify-center items-center gap-2">
                 <span>{contact.icon}</span>
-                <span className="bg-gradient-to-r from-[#8a58ce] to-[#00CAFF] bg-clip-text text-transparent">
+                <span className="blue-900">
                   {contact.title}
                 </span>
               </h3>
             </a>
           ))}
         </div>
+        <div className="absolute bottom-0 left-0 w-full opacity-70 border border-grey/10 shadow-xl">
+        <p className=" text-center"> Join HealthPlus today!</p>
+          <p className="text-center"> HealthPlus @2025</p>
+
+        </div>
+
       </section>
     </>
   );
