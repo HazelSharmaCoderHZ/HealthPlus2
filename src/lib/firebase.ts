@@ -1,23 +1,126 @@
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+// src/lib/firebase.ts
+import { initializeApp, getApps, getApp } from "firebase/app";
+import type { FirebaseApp } from "firebase/app";
+import { getAuth, type Auth } from "firebase/auth";
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+import {
+  initializeFirestore,
+  getFirestore,
+  enableIndexedDbPersistence,
+  type Firestore,
+} from "firebase/firestore";
+
+import { getAnalytics, isSupported } from "firebase/analytics";
+
+const isServer = typeof window === "undefined";
+
 const firebaseConfig = {
-  apiKey: "AIzaSyDSWiNsbcm1iYQwFOqQ0lP04gnifrKolhs",
-  authDomain: "nutriplus-72271.firebaseapp.com",
-  projectId: "nutriplus-72271",
-  storageBucket: "nutriplus-72271.firebasestorage.app",
-  messagingSenderId: "920005003427",
-  appId: "1:920005003427:web:85831d760d615428875716",
-  measurementId: "G-NCXS94ZL27"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY ?? "",
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ?? "",
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ?? "",
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ?? "",
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ?? "",
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID ?? "",
+  measurementId:
+    process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID ??
+    process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENTID ??
+    undefined,
 };
 
-const app = initializeApp(firebaseConfig);
+// Debug print
+if (!isServer && process.env.NODE_ENV === "development") {
+  console.info("[firebase] config (dev):", {
+    apiKey: firebaseConfig.apiKey ? "***present***" : "***MISSING***",
+    authDomain: firebaseConfig.authDomain,
+    projectId: firebaseConfig.projectId,
+    storageBucket: firebaseConfig.storageBucket,
+    appId: firebaseConfig.appId ? "***present***" : "***MISSING***",
+    measurementId: firebaseConfig.measurementId ?? "***not-set***",
+  });
+}
 
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+let app: FirebaseApp | null = null;
+let auth: Auth | null = null;
+let db: Firestore | null = null;
+let analytics: any = null;
+
+if (!isServer) {
+  const hasCritical =
+    firebaseConfig.apiKey &&
+    firebaseConfig.projectId &&
+    firebaseConfig.authDomain &&
+    firebaseConfig.appId;
+
+  if (!hasCritical) {
+    console.error("[firebase] Missing critical config. Firebase NOT initialized.");
+  } else {
+    try {
+      // Avoid re-initializing the app
+      app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+
+      auth = getAuth(app);
+
+      // 🎯 Firestore: prefer long-polling to avoid firewall/Kaspersky issues
+      try {
+        db = initializeFirestore(app, {
+          experimentalForceLongPolling: true,
+          experimentalAutoDetectLongPolling: true,
+          useFetchStreams: false,
+        } as any);
+      } catch (err) {
+        console.warn("[firebase] initializeFirestore failed, falling back:", err);
+        db = getFirestore(app);
+      }
+
+      // 🎯 Enable persistence for queued offline writes (setup page won't hang)
+      if (db) {
+        enableIndexedDbPersistence(db).catch((err: any) => {
+          if (err?.code === "failed-precondition") {
+            console.warn("IndexedDB persistence failed: multiple tabs.");
+          } else if (err?.code === "unimplemented") {
+            console.warn("IndexedDB persistence not available.");
+          } else {
+            console.warn("IndexedDB persistence error:", err);
+          }
+        });
+      }
+
+      // Expose db for browser debugging (dev only)
+      if (typeof window !== "undefined") {
+        (window as any)._debug_db = db;
+      }
+
+      // Analytics (optional)
+      isSupported()
+        .then((supported) => {
+          if (supported) {
+            try {
+              analytics = getAnalytics(app!);
+            } catch (e) {
+              console.warn("Analytics init failed:", e);
+            }
+          }
+        })
+        .catch(() => {
+          analytics = null;
+        });
+    } catch (e: any) {
+      console.error("[firebase] initialization failed:", e?.message ?? e);
+      app = null;
+      auth = null;
+      db = null;
+      analytics = null;
+    }
+  }
+}
+
+if (typeof window !== "undefined") {
+  console.log(
+    "[firebase] init:",
+    "auth:", !!auth,
+    "db:", !!db
+  );
+}
+
+export { app, auth, db, analytics };
+export default app;

@@ -5,7 +5,7 @@ import { AuthProvider } from "src/context/AuthContext";
 import {  NutritionProvider } from "../context/NutritionContext";
 
 export const metadata: Metadata = {
-  title: "NutriPlus",
+  title: "HealthPlus",
   description: "Your Smart Health Companion",
 };
 

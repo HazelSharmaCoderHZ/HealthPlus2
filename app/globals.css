@@ -7,7 +7,7 @@
 
 /* custom styles */
 :root {
-  --bg-start: #c5eaf9;
+  --bg-start: #a0cee0;
   --bg-center: #ffffff;
   --bg-end:#c5eaf9;
 }
@@ -17,6 +17,8 @@ html, body {
   background: linear-gradient(to right, var(--bg-start), var(--bg-center), var(--bg-end));
   color: white;
 }
+
+
 .dna {
   position: relative;
   transform: rotate(45deg) ;

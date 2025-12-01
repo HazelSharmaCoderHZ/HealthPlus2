@@ -11,5 +11,10 @@ module.exports = {
         '4.5': '4.5rem',  // 72px
       }},
   },
+  safelist: [
+  {
+    pattern: /(bg|text)-(yellow|blue|green|red)-(100|300|500)/,
+  },
+],
   plugins: [],
 };

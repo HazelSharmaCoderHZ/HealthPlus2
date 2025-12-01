@@ -1,0 +1,64 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // USER PROFILE
+    match /users/{userId} {
+      allow read: if true;
+      allow create: if request.auth != null && request.auth.uid == userId;
+      // require verified email for destructive/major profile changes (optional)
+      allow update, delete: if request.auth != null
+                           && request.auth.uid == userId
+                           && request.auth.token.email_verified == true;
+    }
+
+    // Journals under users/{userId}/journals/{dateId}
+    match /users/{userId}/journals/{dateId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null
+                    && request.auth.uid == userId
+                    && request.resource.data.keys().hasAny(['mood'])
+                    && request.resource.data.mood is string
+                    && request.resource.data.keys().hasAny(['date'])
+                    && request.resource.data.date is string
+                    && request.resource.data.date == dateId;
+      allow update: if request.auth != null
+                    && request.auth.uid == userId
+                    && request.resource.data.mood is string
+                    && request.resource.data.date is string
+                    && request.resource.data.date == dateId;
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Water intake stored under users/{userId}/waterIntake/{dateId}
+    // Each doc must include date, weight (number or string), glasses (int) - we keep checks flexible for client compatibility
+    match /users/{userId}/waterIntake/{dateId} {
+      // owner-only
+      allow read: if request.auth != null && request.auth.uid == userId;
+
+      allow create: if request.auth != null
+                    && request.auth.uid == userId
+                    && request.resource.data.keys().hasAny(['date'])
+                    && request.resource.data.date is string
+                    && request.resource.data.date == dateId
+                    && request.resource.data.keys().hasAny(['glasses'])
+                    && (request.resource.data.glasses is int || request.resource.data.glasses is float || request.resource.data.glasses is string);
+
+      allow update: if request.auth != null
+                    && request.auth.uid == userId
+                    && request.resource.data.date is string
+                    && request.resource.data.date == dateId
+                    && request.resource.data.keys().hasAny(['glasses'])
+                    && (request.resource.data.glasses is int || request.resource.data.glasses is float || request.resource.data.glasses is string);
+
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Default: public reads; writes require verified email (fallback)
+    match /{document=**} {
+      allow read: if true;
+      allow write: if request.auth != null
+                   && request.auth.token.email_verified == true;
+    }
+  }
+}

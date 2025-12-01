@@ -2,9 +2,13 @@
 import Link from "next/link";
 import ThemeToggle from "../components/ThemeToggle";
 
+
+
+
 export default function Navbar() {
   return (
     <>
+    
       {/* Header / Navbar */}
       <header className="fixed inset-x-0 top-0 z-50 backdrop-blur-xl shadow-md">
   <nav className="max-w-7xl mx-auto px-6 sm:px-8 flex items-center justify-between">
@@ -40,7 +44,7 @@ export default function Navbar() {
         Contact Us
       </a>
 
-      <ThemeToggle />
+      
     </div>
   </nav>
 </header>
@@ -60,14 +64,38 @@ export default function Navbar() {
 </svg>
 
 <svg
-  className="absolute bottom-0 left-0 w-full opacity-70 scale-y-[-1]"
+  className="absolute bottom-0 left-0 w-full opacity-90 scale-y-[-1] backdrop-blur-2xl"
   viewBox="0 0 1440 320"
 >
+  <defs>
+    {/* Multi-color gradient */}
+    <linearGradient id="neonGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stopColor="#3EE9F2" stopOpacity="0.9" />
+      <stop offset="50%" stopColor="#8B5CF6" stopOpacity="0.9" />
+      <stop offset="100%" stopColor="#48a2ecff" stopOpacity="0.9" />
+    </linearGradient>
+
+    {/* Frosted glass blur */}
+    <filter id="glassBlur" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="14" result="blur" />
+      <feColorMatrix
+        in="blur"
+        type="matrix"
+        values="1 0 0 0 0  
+                0 1 0 0 0  
+                0 0 1 0 0  
+                0 0 0 0.35 0"
+      />
+    </filter>
+  </defs>
+
   <path
-    fill="#7DD3FC"
+    fill="url(#neonGradient)"
+    filter="url(#glassBlur)"
     d="M0,224L80,213.3C160,203,320,181,480,149.3C640,117,800,75,960,90.7C1120,107,1280,181,1360,218.7L1440,256V0H0Z"
-  ></path>
+  />
 </svg>
+
 
     
     <h1 className="text-6xl sm:text-6xl mb-5 font-bold mt-6 text-blue-900">
