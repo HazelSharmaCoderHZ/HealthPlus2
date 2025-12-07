@@ -75,7 +75,7 @@ export default function DashboardPage() {
 
             {/* Dropdown */}
             {openTab === i && (
-              <div className="absolute top-full mt-4 w-64 bg-black/60  border border-blue-700 rounded-xl p-4">
+              <div className="absolute top-full mt-4 w-64 bg-black  border border-blue-700 rounded-xl p-4">
                 {category.items.map((item, j) => (
                   <Link
                     key={j}

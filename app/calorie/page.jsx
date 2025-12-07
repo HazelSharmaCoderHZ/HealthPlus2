@@ -34,8 +34,8 @@ export default function KnowYourFoodComparison() {
   const { user } = useAuth();
 
   // Solid pastel palette
-  const PASTEL_COLORS = ["#A8E6CF", "#FFD3B6", "#FFAAA5", "#D4A5FF"];
-  const BAR_COLORS = ["#A8E6CF", "#FFAAA5"]; // Food1 mint, Food2 coral
+  const PASTEL_COLORS = ["#383d60ff", "#1a1d47ff", "#0b2bc8ff", "#a5b2ffff"];
+  const BAR_COLORS = ["#364ff0ff", "#2f2576ff"]; // Food1 mint, Food2 coral
 
   const fetchNutrition = async (
     food,
@@ -73,7 +73,7 @@ export default function KnowYourFoodComparison() {
 
         if (isFood1) setShowCompareOption(true);
       } else {
-        setError("Food not found 😔");
+        setError("Food not found ");
       }
     } catch (err) {
       setError("Something went wrong. Try again.");
@@ -152,8 +152,8 @@ export default function KnowYourFoodComparison() {
   };
 
   const FoodCard = ({ result, logAction }) => (
-    <div className="border-2 border-purple-300 shadow-md bg-gradient-to-tr from-gray-950 to-gray-900 p-6 rounded-2xl text-left w-[500px] text-white transition-transform hover:scale-105">
-      <h3 className="text-2xl font-extrabold capitalize mb-2 text-purple-200">
+    <div className=" border-blue-700 shadow-md bg-white/50 p-6 rounded-2xl text-left w-[500px] text-slate-800 border-xl transition-transform hover:scale-105">
+      <h3 className="text-2xl  capitalize mb-2 text-blue-800">
         {result.name}
       </h3>
       <p>🔥 Calories: {result.calories}</p>
@@ -163,7 +163,7 @@ export default function KnowYourFoodComparison() {
       <button
         onClick={logAction}
         className="mt-3 px-4 py-2 text-black font-bold rounded-lg hover:opacity-90 w-full"
-        style={{ backgroundColor: "#CDB4DB" }}
+        style={{ backgroundColor: "#9d95f9ff" }}
       >
         ✅ Log this item
       </button>
@@ -197,7 +197,7 @@ export default function KnowYourFoodComparison() {
                 backgroundColor: "#f9fafb", // light background
                 border: "1px solid #CDB4DB",
                 borderRadius: "8px",
-                color: "#111",
+                color: "#f8f5f5ff",
               }}
             />
             <Legend wrapperStyle={{ color: "white" }} />
@@ -208,29 +208,29 @@ export default function KnowYourFoodComparison() {
   );
 
   return (
-    <main className="min-h-screen flex flex-col items-center p-6 bg-gradient-to-tr from-black via-gray-900 to-gray-800">
+    <main className="min-h-screen flex flex-col items-center p-6 ">
       <TopMenuButton />
 
       {/* Top section with two choices */}
       <div className="flex flex-col md:flex-row items-start justify-center w-full gap-12 relative">
         {/* First Choice */}
         <div className="flex flex-col items-center">
-          <h2 className="text-4xl font-bold text-purple-200 mb-4">
-            🥗 First Choice
+          <h2 className="text-4xl font-bold text-blue-800 mb-4">
+             Food Choice
           </h2>
           <input
             type="text"
             value={food1}
             onChange={(e) => setFood1(e.target.value)}
             placeholder="Enter food item"
-            className="mb-2 w-72 p-2 rounded-md bg-gray-800 text-white border border-purple-300"
+            className="mb-2 w-72 p-2 rounded-md bg-white/50 text-slate-800 border border-purple-300"
           />
           <button
             onClick={() =>
               fetchNutrition(food1, setResult1, setError1, setLoading1, true)
             }
             className="px-6 py-2 rounded-lg font-semibold mb-4"
-            style={{ backgroundColor: "#FFCDB2", color: "#000" }}
+            style={{ backgroundColor: "#4134fdff", color: "#ffffffff" }}
           >
             {loading1 ? "⏳ Checking..." : "Check Nutrition"}
           </button>
@@ -244,7 +244,7 @@ export default function KnowYourFoodComparison() {
             <button
               onClick={() => setShowFood2Input(true)}
               className="mt-6 px-4 py-2 rounded-lg font-bold"
-              style={{ backgroundColor: "#FFB4A2", color: "#000" }}
+              style={{ backgroundColor: "#e2e4f8ff", color: "#051efdff" }}
             >
               ➕ Compare with another food
             </button>
@@ -255,22 +255,22 @@ export default function KnowYourFoodComparison() {
         {/* Second Choice */}
         {showFood2Input && (
           <div className="flex flex-col items-center">
-            <h2 className="text-4xl font-bold text-purple-200 mb-4">
-              🍛 Second Choice
+            <h2 className="text-4xl font-bold text-blue-800 mb-4">
+              Second Choice
             </h2>
             <input
               type="text"
               value={food2}
               onChange={(e) => setFood2(e.target.value)}
               placeholder="Enter food item"
-              className="mb-2 w-72 p-2 rounded-md bg-gray-800 text-white border border-purple-300"
+              className="mb-2 w-72 p-2 rounded-md bg-white/50 text-slate-800 border border-purple-300"
             />
             <button
               onClick={() =>
                 fetchNutrition(food2, setResult2, setError2, setLoading2, false)
               }
               className="px-6 py-2 rounded-lg font-semibold mb-4"
-              style={{ backgroundColor: "#CDB4DB", color: "#000" }}
+              style={{ backgroundColor: "#3941dfff", color: "#fffbfbff" }}
             >
               {loading2 ? "⏳ Checking..." : "Check Nutrition"}
             </button>
@@ -288,19 +288,19 @@ export default function KnowYourFoodComparison() {
       {/* Bar chart below both cards */}
       {result1 && result2 && (
         <div className="w-full max-w-2xl h-96 flex flex-col items-center justify-center mt-12">
-          <h3 className="text-3xl font-bold text-purple-200 mb-6">
+          <h3 className="text-3xl font-bold text-blue-800 mb-6">
             📊 Comparison
           </h3>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={getComparisonData()}>
-              <XAxis dataKey="nutrient" stroke="#CDB4DB" />
-              <YAxis stroke="#CDB4DB" />
+              <XAxis dataKey="nutrient" stroke="#0b0b0bff" />
+              <YAxis stroke="#0c0c0cff" />
               <Tooltip
                 contentStyle={{
                   backgroundColor: "#f9fafb", // lighter background
                   border: "1px solid #CDB4DB",
                   borderRadius: "8px",
-                  color: "#111",
+                  color: "#f9f7f7ff",
                 }}
               />
               <Legend wrapperStyle={{ color: "white" }} />
@@ -315,9 +315,9 @@ export default function KnowYourFoodComparison() {
         <button
           onClick={() => router.back()}
           className="mt-6 px-4 py-2 rounded-lg font-bold"
-          style={{ backgroundColor: "#FFB4A2", color: "#000" }}
+          style={{ backgroundColor: "#0637e8ff", color: "#fcf7f7ff" }}
         >
-          🔙 Go Back
+           Go Back
         </button>
       </main>
   );

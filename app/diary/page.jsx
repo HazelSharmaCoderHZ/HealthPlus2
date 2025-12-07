@@ -154,9 +154,9 @@ export default function DiaryPage() {
             ) : (
               entry ? (
                 <div className="p-4">
-                  <h3 className="font-semibold mb-2">Entry for {selectedId}</h3>
-                  <p className="mb-2">{entry.text}</p>
-                  <p className="text-sm text-gray-300">Mood: {entry.mood}</p>
+                  <h3 className="font-semibold text-gray-900 mb-2">Entry for {selectedId}</h3>
+                  <p className="mb-2 text-blue-600">{entry.text}</p>
+                  <p className="text-sm font-semibold text-gray-900">Mood: {entry.mood}</p>
                   <div className="mt-4">
                     <button
                       onClick={handleDelete}

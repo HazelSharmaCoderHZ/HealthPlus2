@@ -31,7 +31,6 @@ service cloud.firestore {
     }
 
     // Water intake stored under users/{userId}/waterIntake/{dateId}
-    // Each doc must include date, weight (number or string), glasses (int) - we keep checks flexible for client compatibility
     match /users/{userId}/waterIntake/{dateId} {
       // owner-only
       allow read: if request.auth != null && request.auth.uid == userId;
@@ -42,16 +41,31 @@ service cloud.firestore {
                     && request.resource.data.date is string
                     && request.resource.data.date == dateId
                     && request.resource.data.keys().hasAny(['glasses'])
-                    && (request.resource.data.glasses is int || request.resource.data.glasses is float || request.resource.data.glasses is string);
+                    && (request.resource.data.glasses is int
+                        || request.resource.data.glasses is float
+                        || request.resource.data.glasses is string);
 
       allow update: if request.auth != null
                     && request.auth.uid == userId
                     && request.resource.data.date is string
                     && request.resource.data.date == dateId
                     && request.resource.data.keys().hasAny(['glasses'])
-                    && (request.resource.data.glasses is int || request.resource.data.glasses is float || request.resource.data.glasses is string);
+                    && (request.resource.data.glasses is int
+                        || request.resource.data.glasses is float
+                        || request.resource.data.glasses is string);
 
       allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // NUTRITION LOGS
+    // documents live at: nutritionLogs/{userId}/{dateId}/{logId}
+    match /nutritionLogs/{userId}/{dateId}/{logId} {
+      // READS: allowed (API route is unauthenticated client SDK)
+      allow read: if true;
+
+      // WRITES: only the authenticated owner
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update, delete: if request.auth != null && request.auth.uid == userId;
     }
 
     // Default: public reads; writes require verified email (fallback)

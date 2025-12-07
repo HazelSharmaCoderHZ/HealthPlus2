@@ -130,7 +130,7 @@ export default function BMICalculatorPage() {
 
   // unified box style for equal dimensions, padding inside
   const boxBase = "p-4 bg-white border border-slate-100 rounded-xl flex flex-col items-center justify-start shadow";
-  const boxSize = "h-64"; // fixed equal height for visual boxes
+  const boxSize = "h-64 w-64"; // fixed equal height and width for visual boxes
 
   return (
     <main className="min-h-screen w-full text-black p-6">
@@ -165,12 +165,10 @@ export default function BMICalculatorPage() {
             </div>
 
             <button onClick={calculateBMI} className="w-1/7 h-1/3 py-2 px-3 mt-2 rounded-md hover:bg-blue-600 bg-blue-900 text-white font-semibold">Calculate</button>
-              <button onClick={() => { setWeight(""); setHeight(""); setBmi(null); setCategory(""); setError(""); }}
-                className="w-1/7 h-1/3 py-2 px-3 mt-2 rounded-md bg-blue-900 text-white font-semibold hover:bg-blue-600">Reset</button>
-                <button onClick={copyToClipboard} className="w-1/7 h-1/3 py-2 px-3 mt-2 rounded-md hover:bg-blue-600 bg-blue-900 text-white font-semibold">Copy</button>
-                  {copyStatus && <div className="w-1/7 h-1/3 py-2 px-3 mt-2 rounded-md  text-black font-semibold">{copyStatus}</div>}
-              
-                
+            <button onClick={() => { setWeight(""); setHeight(""); setBmi(null); setCategory(""); setError(""); }}
+              className="w-1/7 h-1/3 py-2 px-3 mt-2 rounded-md bg-blue-900 text-white font-semibold hover:bg-blue-600">Reset</button>
+            <button onClick={copyToClipboard} className="w-1/7 h-1/3 py-2 px-3 mt-2 rounded-md hover:bg-blue-600 bg-blue-900 text-white font-semibold">Copy</button>
+            {copyStatus && <div className="w-1/7 h-1/3 py-2 px-3 mt-2 rounded-md text-black font-semibold">{copyStatus}</div>}
           </div>
 
           {error && <div className="text-red-600">{error}</div>}
@@ -178,10 +176,9 @@ export default function BMICalculatorPage() {
           {/* interactive visuals row - equal sized boxes */}
           <div className="mt-4 w-full flex flex-wrap justify-center gap-6">
 
-
             {/* central radial gauge expanded */}
             <div className={`${boxBase} ${boxSize}`}>
-              <div className="w-full flex-1 flex items-center justify-center">
+              <div className="w-full flex-1 flex items-center w-44 h-44 justify-center">
                 <svg viewBox="0 0 200 200" className="w-44 h-44">
                   <defs>
                     <linearGradient id="gaugeGrad" x1="0%" x2="100%">
@@ -205,17 +202,14 @@ export default function BMICalculatorPage() {
               </div>
 
               <div className="w-full mt-3 text-center text-sm text-blue-900 font-semibold">{category || "--"}</div>
-              
-
-              {/* copy status */}
-              
             </div>
 
             {/* compact stats - represented as small visual bars */}
             <div className={`${boxBase} ${boxSize}`}>
-              <div className="w-full flex-1 w-44 h-44">
-                <div className="text-sm text-center font-medium">Visual Stats</div>
-                <div className="mt-2 space-y-3">
+              <div className="w-full flex-1 flex items-center w-44 h-44 justify-center">
+                
+                <div className="mt-2 w-44 h-44 space-y-3">
+                  <h4 className="font-semibold">Visual Stats</h4>
                   {['Weight', 'Height', 'BMI Target'].map((label, i) => (
                     <div key={i} className="px-2">
                       <div className="flex justify-between text-xs"><div>{label}</div><div>{i===2? (bmi!==null? bmi : '--') : (i===0? weight || '--' : height || '--')}</div></div>
@@ -226,15 +220,13 @@ export default function BMICalculatorPage() {
                   ))}
                 </div>
               </div>
+            </div>
 
-             
-            </div>         </div>
-
-          
-          </section>
+          </div>
+        </section>
       </div>
-<div className="mt-10 text-xs text-slate-600">*BMI categories use WHO ranges. This tool uses your stored gender only for tips, not thresholds.</div>
-        
+
+      <div className="mt-10 text-xs text-slate-600">*BMI categories use WHO ranges. This tool uses your stored gender only for tips, not thresholds.</div>
     </main>
   );
 }
