@@ -191,9 +191,9 @@ export default function Navbar() {
 
         <div className="grid gap-8 sm:grid-cols-3 max-w-4xl w-full">
           {[
-            { icon: "↗️", title: "Meet our founders", link: "https://www.linkedin.com/in/arshi-saxena-59268130a/" },
-            { icon: "🖥️", title: "GitHub", link: "https://github.com/Arshi1101" },
-            { icon: "📧", title: "Gmail", link: "mailto:arshisaxena11@gmail.com" },
+            { icon: "↗️", title: "Meet our founders", link: "https://www.linkedin.com/in/hazelsharma-it/" },
+            { icon: "🖥️", title: "GitHub", link: "https://github.com/HazelSharmaCoderHZ" },
+            { icon: "📧", title: "Gmail", link: "mailto:sharmahazel310@gmail.com" },
           ].map((contact, idx) => (
             <a
               key={idx}
