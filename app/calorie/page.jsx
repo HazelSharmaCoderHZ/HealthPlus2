@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { db } from "@/lib/firebase";
 import { doc, collection, addDoc } from "firebase/firestore";
 import { useAuth } from "@/context/AuthContext";
-import TopMenuButton from "../../components/TopMenuButton"; 
+import TopMenuButton from "../../components/TopMenuButton";
 import {
   PieChart,
   Pie,
@@ -18,6 +18,14 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+
+// 🔹 helper: local date key "YYYY-MM-DD"
+function getLocalDateKey(dateObj) {
+  const y = dateObj.getFullYear();
+  const m = String(dateObj.getMonth() + 1).padStart(2, "0");
+  const d = String(dateObj.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
 
 export default function KnowYourFoodComparison() {
   const [food1, setFood1] = useState("");
@@ -33,9 +41,8 @@ export default function KnowYourFoodComparison() {
   const router = useRouter();
   const { user } = useAuth();
 
-  // Solid pastel palette
-  const PASTEL_COLORS = ["#383d60ff", "#1a1d47ff", "#0b2bc8ff", "#a5b2ffff"];
-  const BAR_COLORS = ["#364ff0ff", "#2f2576ff"]; // Food1 mint, Food2 coral
+  const PIE_COLORS = ["#2563eb", "#1e3a8a", "#60a5fa", "#93c5fd"];
+  const BAR_COLORS = ["#2563eb", "#1e3a8a"];
 
   const fetchNutrition = async (
     food,
@@ -62,6 +69,7 @@ export default function KnowYourFoodComparison() {
 
       if (data.items && data.items.length > 0) {
         const formatted = { ...data.items[0] };
+
         ["calories", "protein_g", "carbohydrates_total_g", "fat_total_g"].forEach(
           (key) => {
             formatted[key] = formatted[key]
@@ -69,13 +77,15 @@ export default function KnowYourFoodComparison() {
               : 0;
           }
         );
+
         setResult(formatted);
 
         if (isFood1) setShowCompareOption(true);
       } else {
-        setError("Food not found ");
+        setError("Food not found.");
       }
     } catch (err) {
+      console.error(err);
       setError("Something went wrong. Try again.");
     } finally {
       setLoading(false);
@@ -83,53 +93,61 @@ export default function KnowYourFoodComparison() {
   };
 
   const logToCalendar = async (result) => {
-    if (!user || !result) return alert("⚠️ Please log in to save items.");
+  if (!user || !result) {
+    alert("⚠️ Please log in to save items.");
+    return;
+  }
 
-    try {
-      const today = new Date().toISOString().split("T")[0];
-      const userDoc = doc(db, "nutritionLogs", user.uid);
-      const dayCollection = collection(userDoc, today);
+  try {
+    const today = new Date();
+    const y = today.getFullYear();
+    const m = String(today.getMonth() + 1).padStart(2, "0");
+    const d = String(today.getDate()).padStart(2, "0");
+    const todayKey = `${y}-${m}-${d}`; // same as calendar/API
 
-      await addDoc(dayCollection, {
-        ...result,
-        loggedAt: new Date(),
-      });
+    // ✅ nutritionLogs/{uid}/{todayKey}/{autoId}
+    const userDocRef = doc(db, "nutritionLogs", user.uid);
+    const dayCollection = collection(userDocRef, todayKey);
 
-      alert(`✅ ${result.name} logged to today's consumption!`);
-    } catch (err) {
-      console.error(err);
-      alert("❌ Failed to log item. Try again.");
-    }
-  };
+    await addDoc(dayCollection, {
+      ...result,
+      loggedAt: new Date().toISOString(),
+    });
 
-  const getPieData = (result) => {
-    if (!result) return [];
-    const totalCals = result.calories || 1;
+    alert(`✅ ${result.name} logged to today's consumption!`);
+  } catch (err) {
+    console.error("Failed to log item:", err);
+    alert("❌ Failed to log item. Try again.");
+  }
+};
+
+
+  const getPieData = (r) => {
+    if (!r) return [];
+    const totalCals = r.calories || 1;
     return [
       {
         name: "Protein",
-        value: result.protein_g * 4,
-        percentage: ((result.protein_g * 4) / totalCals * 100).toFixed(1),
+        value: r.protein_g * 4,
+        percentage: (((r.protein_g * 4) / totalCals) * 100).toFixed(1),
       },
       {
         name: "Carbs",
-        value: result.carbohydrates_total_g * 4,
-        percentage: ((result.carbohydrates_total_g * 4) / totalCals * 100).toFixed(
-          1
-        ),
+        value: r.carbohydrates_total_g * 4,
+        percentage: (((r.carbohydrates_total_g * 4) / totalCals) * 100).toFixed(1),
       },
       {
         name: "Fat",
-        value: result.fat_total_g * 9,
-        percentage: ((result.fat_total_g * 9) / totalCals * 100).toFixed(1),
+        value: r.fat_total_g * 9,
+        percentage: (((r.fat_total_g * 9) / totalCals) * 100).toFixed(1),
       },
       {
         name: "Other",
         value: Math.max(
-          result.calories -
-            (result.protein_g * 4 +
-              result.carbohydrates_total_g * 4 +
-              result.fat_total_g * 9),
+          r.calories -
+            (r.protein_g * 4 +
+              r.carbohydrates_total_g * 4 +
+              r.fat_total_g * 9),
           0
         ),
         percentage: "",
@@ -152,25 +170,27 @@ export default function KnowYourFoodComparison() {
   };
 
   const FoodCard = ({ result, logAction }) => (
-    <div className=" border-blue-700 shadow-md bg-white/50 p-6 rounded-2xl text-left w-[500px] text-slate-800 border-xl transition-transform hover:scale-105">
-      <h3 className="text-2xl  capitalize mb-2 text-blue-800">
+    <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white shadow-md p-6 transition hover:shadow-lg">
+      <h3 className="text-2xl font-bold capitalize text-blue-700">
         {result.name}
       </h3>
-      <p>🔥 Calories: {result.calories}</p>
-      <p>🥩 Protein: {result.protein_g} g</p>
-      <p>🍞 Carbs: {result.carbohydrates_total_g} g</p>
-      <p>🥑 Fat: {result.fat_total_g} g</p>
+
+      <div className="grid grid-cols-2 gap-3 mt-4 text-sm text-slate-700">
+        <p>🔥 Calories: {result.calories}</p>
+        <p>🥩 Protein: {result.protein_g} g</p>
+        <p>🍞 Carbs: {result.carbohydrates_total_g} g</p>
+        <p>🥑 Fat: {result.fat_total_g} g</p>
+      </div>
+
       <button
         onClick={logAction}
-        className="mt-3 px-4 py-2 text-black font-bold rounded-lg hover:opacity-90 w-full"
-        style={{ backgroundColor: "#9d95f9ff" }}
+        className="mt-4 w-full rounded-lg bg-blue-600 text-white py-2 font-semibold hover:bg-blue-700 transition"
       >
-        ✅ Log this item
+        Log this item
       </button>
 
-      {/* Pie chart */}
       <div className="mt-6 w-full h-56">
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer>
           <PieChart>
             <Pie
               data={getPieData(result)}
@@ -179,28 +199,18 @@ export default function KnowYourFoodComparison() {
               cx="50%"
               cy="50%"
               outerRadius={80}
-              labelLine={false} // no slice labels
             >
               {getPieData(result).map((entry, index) => (
                 <Cell
-                  key={`cell-${index}`}
-                  fill={PASTEL_COLORS[index % PASTEL_COLORS.length]}
+                  key={index}
+                  fill={PIE_COLORS[index % PIE_COLORS.length]}
                 />
               ))}
             </Pie>
-            <Tooltip
-              formatter={(value, name, props) => [
-                `${value} cal (${props.payload.percentage}%)`,
-                name,
-              ]}
-              contentStyle={{
-                backgroundColor: "#f9fafb", // light background
-                border: "1px solid #CDB4DB",
-                borderRadius: "8px",
-                color: "#f8f5f5ff",
-              }}
-            />
-            <Legend wrapperStyle={{ color: "white" }} />
+
+            <Tooltip />
+
+            <Legend />
           </PieChart>
         </ResponsiveContainer>
       </div>
@@ -208,117 +218,146 @@ export default function KnowYourFoodComparison() {
   );
 
   return (
-    <main className="min-h-screen flex flex-col items-center p-6 ">
+    <main className="min-h-screen bg-white text-slate-800">
       <TopMenuButton />
 
-      {/* Top section with two choices */}
-      <div className="flex flex-col md:flex-row items-start justify-center w-full gap-12 relative">
-        {/* First Choice */}
-        <div className="flex flex-col items-center">
-          <h2 className="text-4xl font-bold text-blue-800 mb-4">
-             Food Choice
-          </h2>
-          <input
-            type="text"
-            value={food1}
-            onChange={(e) => setFood1(e.target.value)}
-            placeholder="Enter food item"
-            className="mb-2 w-72 p-2 rounded-md bg-white/50 text-slate-800 border border-purple-300"
-          />
-          <button
-            onClick={() =>
-              fetchNutrition(food1, setResult1, setError1, setLoading1, true)
-            }
-            className="px-6 py-2 rounded-lg font-semibold mb-4"
-            style={{ backgroundColor: "#4134fdff", color: "#ffffffff" }}
-          >
-            {loading1 ? "⏳ Checking..." : "Check Nutrition"}
-          </button>
-          {result1 && (
-            <FoodCard
-              result={result1}
-              logAction={() => logToCalendar(result1)}
-            />
-          )}
-          {showCompareOption && !showFood2Input && (
-            <button
-              onClick={() => setShowFood2Input(true)}
-              className="mt-6 px-4 py-2 rounded-lg font-bold"
-              style={{ backgroundColor: "#e2e4f8ff", color: "#051efdff" }}
-            >
-              ➕ Compare with another food
-            </button>
-          )}
-          {error1 && <p className="text-red-400 mt-2">{error1}</p>}
-        </div>
+      <div className="max-w-6xl mx-auto px-4 pt-24 pb-12">
+        <header className="text-center mb-10">
+          <h1 className="text-4xl font-extrabold text-blue-600">
+            Know Your Food
+          </h1>
+          <p className="text-slate-600 mt-2">
+            Check nutrition for any food & compare two items easily.
+          </p>
+        </header>
 
-        {/* Second Choice */}
-        {showFood2Input && (
-          <div className="flex flex-col items-center">
-            <h2 className="text-4xl font-bold text-blue-800 mb-4">
-              Second Choice
-            </h2>
-            <input
-              type="text"
-              value={food2}
-              onChange={(e) => setFood2(e.target.value)}
-              placeholder="Enter food item"
-              className="mb-2 w-72 p-2 rounded-md bg-white/50 text-slate-800 border border-purple-300"
-            />
-            <button
-              onClick={() =>
-                fetchNutrition(food2, setResult2, setError2, setLoading2, false)
-              }
-              className="px-6 py-2 rounded-lg font-semibold mb-4"
-              style={{ backgroundColor: "#3941dfff", color: "#fffbfbff" }}
-            >
-              {loading2 ? "⏳ Checking..." : "Check Nutrition"}
-            </button>
-            {result2 && (
-              <FoodCard
-                result={result2}
-                logAction={() => logToCalendar(result2)}
+        <section className="bg-blue-50 border border-blue-100 rounded-3xl p-8 shadow-sm">
+          <div className="flex flex-col md:flex-row gap-10 justify-between">
+            {/* FOOD 1 */}
+            <div className="flex flex-col items-start w-full">
+              <h2 className="text-xl font-semibold text-blue-700 mb-2">
+                First food
+              </h2>
+
+              <input
+                type="text"
+                value={food1}
+                onChange={(e) => setFood1(e.target.value)}
+                placeholder="e.g., 2 eggs, 1 cup dal"
+                className="w-full max-w-md border border-slate-300 rounded-lg px-3 py-2 bg-white text-slate-700 placeholder:text-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-300"
               />
+
+              <button
+                onClick={() =>
+                  fetchNutrition(food1, setResult1, setError1, setLoading1, true)
+                }
+                disabled={loading1}
+                className="mt-3 bg-blue-600 text-white px-5 py-2 rounded-lg font-semibold hover:bg-blue-700 transition"
+              >
+                {loading1 ? "Checking..." : "Check"}
+              </button>
+
+              {error1 && <p className="text-red-500 text-sm mt-2">{error1}</p>}
+
+              {result1 && (
+                <div className="mt-4">
+                  <FoodCard
+                    result={result1}
+                    logAction={() => logToCalendar(result1)}
+                  />
+                </div>
+              )}
+
+              {showCompareOption && !showFood2Input && (
+                <button
+                  onClick={() => setShowFood2Input(true)}
+                  className="mt-6 border border-blue-600 text-blue-700 rounded-full px-4 py-2 font-semibold hover:bg-blue-100 transition"
+                >
+                  Compare with another food
+                </button>
+              )}
+            </div>
+
+            {/* FOOD 2 */}
+            {showFood2Input && (
+              <div className="flex flex-col items-start w-full">
+                <h2 className="text-xl font-semibold text-blue-700 mb-2">
+                  Second food
+                </h2>
+
+                <input
+                  type="text"
+                  value={food2}
+                  onChange={(e) => setFood2(e.target.value)}
+                  placeholder="e.g., 1 cup rice"
+                  className="w-full max-w-md border border-slate-300 rounded-lg px-3 py-2 bg-white text-slate-700 placeholder:text-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-300"
+                />
+
+                <button
+                  onClick={() =>
+                    fetchNutrition(
+                      food2,
+                      setResult2,
+                      setError2,
+                      setLoading2,
+                      false
+                    )
+                  }
+                  disabled={loading2}
+                  className="mt-3 bg-blue-600 text-white px-5 py-2 rounded-lg font-semibold hover:bg-blue-700 transition"
+                >
+                  {loading2 ? "Checking..." : "Check"}
+                </button>
+
+                {error2 && (
+                  <p className="text-red-500 text-sm mt-2">{error2}</p>
+                )}
+
+                {result2 && (
+                  <div className="mt-4">
+                    <FoodCard
+                      result={result2}
+                      logAction={() => logToCalendar(result2)}
+                    />
+                  </div>
+                )}
+              </div>
             )}
-            {error2 && <p className="text-red-400 mt-2">{error2}</p>}
           </div>
-        )}
-      </div>
 
-      {/* Bar chart below both cards */}
-      {result1 && result2 && (
-        <div className="w-full max-w-2xl h-96 flex flex-col items-center justify-center mt-12">
-          <h3 className="text-3xl font-bold text-blue-800 mb-6">
-            📊 Comparison
-          </h3>
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={getComparisonData()}>
-              <XAxis dataKey="nutrient" stroke="#0b0b0bff" />
-              <YAxis stroke="#0c0c0cff" />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "#f9fafb", // lighter background
-                  border: "1px solid #CDB4DB",
-                  borderRadius: "8px",
-                  color: "#f9f7f7ff",
-                }}
-              />
-              <Legend wrapperStyle={{ color: "white" }} />
-              <Bar dataKey="Food1" fill={BAR_COLORS[0]} barSize={40} />
-              <Bar dataKey="Food2" fill={BAR_COLORS[1]} barSize={40} />
-            </BarChart>
-          </ResponsiveContainer>
+          {/* COMPARISON CHART */}
+          {result1 && result2 && (
+            <div className="mt-12">
+              <h3 className="text-2xl font-bold text-blue-700 text-center mb-4">
+                Comparison Chart
+              </h3>
+
+              <div className="w-full h-80 border border-slate-200 bg-white rounded-xl p-4 shadow-sm">
+                <ResponsiveContainer>
+                  <BarChart data={getComparisonData()}>
+                    <XAxis dataKey="nutrient" stroke="#1e3a8a" />
+                    <YAxis stroke="#1e3a8a" />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="Food1" fill={BAR_COLORS[0]} barSize={40} />
+                    <Bar dataKey="Food2" fill={BAR_COLORS[1]} barSize={40} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
+        </section>
+
+        {/* BACK BUTTON */}
+        <div className="flex justify-center mt-10">
+          <button
+            onClick={() => router.back()}
+            className="px-5 py-2 rounded-full border border-blue-600 text-blue-700 font-semibold hover:bg-blue-50 transition"
+          >
+            ⬅ Back
+          </button>
         </div>
-      )}
-
-      {/* Go Back Button */}
-        <button
-          onClick={() => router.back()}
-          className="mt-6 px-4 py-2 rounded-lg font-bold"
-          style={{ backgroundColor: "#0637e8ff", color: "#fcf7f7ff" }}
-        >
-           Go Back
-        </button>
-      </main>
+      </div>
+    </main>
   );
 }

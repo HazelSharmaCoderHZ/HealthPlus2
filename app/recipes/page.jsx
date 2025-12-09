@@ -250,9 +250,7 @@ export default function RecipesPage() {
                         )}
                       </div>
                     </div>
-                    <span className="rounded-full bg-slate-50 px-2 py-1 text-[11px] text-slate-600 border border-slate-200">
-                      ⏱ {(meal.prep_time || 0) + (meal.cook_time || 0)} mins
-                    </span>
+                    
                   </div>
 
                   {/* Brief meta */}
@@ -332,11 +330,7 @@ export default function RecipesPage() {
                           </div>
                         )}
 
-                        {/* Time */}
-                        <p className="mt-2 text-[11px] text-slate-600">
-                          ⏱ Prep Time: {meal.prep_time || "N/A"} mins | Cook
-                          Time: {meal.cook_time || "N/A"} mins
-                        </p>
+                        
                       </motion.div>
                     )}
                   </AnimatePresence>

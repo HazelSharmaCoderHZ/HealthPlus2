@@ -62,11 +62,13 @@ if (!isServer) {
 
       // 🎯 Firestore: prefer long-polling to avoid firewall/Kaspersky issues
       try {
-        db = initializeFirestore(app, {
-          experimentalForceLongPolling: true,
-          experimentalAutoDetectLongPolling: true,
-          useFetchStreams: false,
-        } as any);
+       // Prefer forceLongPolling only — don't pass both flags (they conflict).
+db = initializeFirestore(app, {
+  experimentalForceLongPolling: true,
+  // experimentalAutoDetectLongPolling: true, // disabled: conflicts with forceLongPolling
+  useFetchStreams: false,
+} as any);
+
       } catch (err) {
         console.warn("[firebase] initializeFirestore failed, falling back:", err);
         db = getFirestore(app);

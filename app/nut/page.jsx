@@ -8,6 +8,17 @@ import { useAuth } from "@/context/AuthContext";
 import { useNutrition } from "context/NutritionContext";
 import TopMenuButton from "../../components/TopMenuButton";
 
+import { db } from "@/lib/firebase";
+import { collection, doc, getDocs } from "firebase/firestore";
+
+// 🔹 helper: local date key "YYYY-MM-DD"
+function getLocalDateKey(dateObj) {
+  const y = dateObj.getFullYear();
+  const m = String(dateObj.getMonth() + 1).padStart(2, "0");
+  const d = String(dateObj.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
 export default function NutritionCalendar() {
   const [date, setDate] = useState(new Date());
   const [summary, setSummary] = useState(null);
@@ -25,12 +36,48 @@ export default function NutritionCalendar() {
     if (!user) return;
     setLoading(true);
     try {
-      const formattedDate = dateObj.toISOString().split("T")[0];
-      const res = await fetch(`/api/nut?uid=${user.uid}&date=${formattedDate}`);
-      const data = await res.json();
-      setSummary(data);
+      const dateKey = getLocalDateKey(dateObj);
+
+      // 🔹 Path: nutritionLogs/{uid}/{dateKey}/{logId}
+      const userDocRef = doc(db, "nutritionLogs", user.uid);
+      const dayRef = collection(userDocRef, dateKey);
+      const snapshot = await getDocs(dayRef);
+
+      if (snapshot.empty) {
+        setSummary(null);
+        return;
+      }
+
+      const s = {
+        calories: 0,
+        protein_g: 0,
+        carbohydrates_total_g: 0,
+        fat_total_g: 0,
+        sugar_g: 0,
+        cholesterol_mg: 0,
+        sodium_mg: 0,
+        potassium_mg: 0,
+      };
+
+      snapshot.forEach((docSnap) => {
+        const d = docSnap.data();
+        s.calories += d.calories || 0;
+        s.protein_g += d.protein_g || 0;
+        s.carbohydrates_total_g += d.carbohydrates_total_g || 0;
+        s.fat_total_g += d.fat_total_g || 0;
+        s.sugar_g += d.sugar_g || 0;
+        s.cholesterol_mg += d.cholesterol_mg || 0;
+        s.sodium_mg += d.sodium_mg || 0;
+        s.potassium_mg += d.potassium_mg || 0;
+      });
+
+      Object.keys(s).forEach((k) => {
+        s[k] = Number(s[k].toFixed(2));
+      });
+
+      setSummary(s);
     } catch (err) {
-      console.error("Failed to fetch summary:", err);
+      console.error("Failed to fetch nutrition summary:", err);
       setSummary(null);
     } finally {
       setLoading(false);
@@ -42,12 +89,8 @@ export default function NutritionCalendar() {
   }, [date, user, refreshFlag]);
 
   return (
-    <main className="min-h-screen w-full  text-slate-900 flex flex-col items-center relative overflow-hidden">
-      
-
+    <main className="min-h-screen w-full text-slate-900 flex flex-col items-center relative overflow-hidden">
       <div className="z-10 w-full max-w-5xl px-4 py-6 md:py-10">
-        
-
         {/* Header */}
         <header className="mb-8 text-center md:text-left">
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-blue-900">
@@ -60,20 +103,18 @@ export default function NutritionCalendar() {
         </header>
 
         {/* Main content: calendar + summary */}
-        <section className="grid gap-6 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1.2fr)] items-center ">
+        <section className="grid gap-6 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1.2fr)] items-center">
           {/* Calendar card */}
           <div className="bg-white/50 backdrop-blur-md rounded-2xl shadow-xl border border-blue-500/40 p-4 md:p-5">
-            <div className="flex items-center  ">
+            <div className="flex items-center">
               <h2 className="text-lg font-semibold justify-between text-blue-700 mr-2">
-                Select a Day: 
+                Select a Day:
               </h2>
-              
             </div>
             <p className="text-xs px-2 py-1 text-slate-700 mb-2">
-                {date.toDateString()}
-              </p>
+              {date.toDateString()}
+            </p>
             <div className="rounded-xl overflow-hidden">
-              
               <Calendar
                 onChange={handleDateChange}
                 value={date}
@@ -97,14 +138,12 @@ export default function NutritionCalendar() {
                 <h2 className="text-xl font-semibold text-blue-600">
                   Daily Nutrition Summary
                 </h2>
-                <p className="text-xs text-slate-600">
-                  {date.toDateString()}
-                </p>
+                <p className="text-xs text-slate-600">{date.toDateString()}</p>
               </div>
               <div className="text-right text-xs text-slate-700">
                 {loading ? (
-                  <span className="inline-flex items-center gap-1 animate-pulse">
-                    <span className="h-2 w-2 rounded-full bg-blue-400" />
+                  <span className="inline-flex  ">
+                   
                     Fetching…
                   </span>
                 ) : summary ? (
@@ -119,13 +158,7 @@ export default function NutritionCalendar() {
               </div>
             </div>
 
-            {loading && (
-              <div className="space-y-3 mt-2">
-                <div className="h-3 rounded-full bg-slate-700/70 animate-pulse" />
-                <div className="h-3 rounded-full bg-slate-700/60 animate-pulse" />
-                <div className="h-3 rounded-full bg-slate-700/50 animate-pulse" />
-              </div>
-            )}
+            
 
             {!loading && summary && (
               <div className="space-y-4">
@@ -213,8 +246,9 @@ export default function NutritionCalendar() {
                 <div className="text-3xl mb-2">📭</div>
                 <p className="font-medium">No data for this day yet.</p>
                 <p className="mt-1 text-xs text-slate-700">
-                  Log a food item using <span className="font-semibold">Know Your Food</span> and
-                  it will automatically appear in your calendar summary.
+                  Log a food item using{" "}
+                  <span className="font-semibold">Know Your Food</span> and it
+                  will automatically appear in your calendar summary.
                 </p>
               </div>
             )}
@@ -226,14 +260,14 @@ export default function NutritionCalendar() {
       </div>
 
       <div className="flex items-center justify-between mb-6">
-          <TopMenuButton />
-          <button
-            onClick={() => router.push("/dashboard")}
-            className="px-4 py-2 rounded-lg border border-blue-500 bg-blue-600 hover:bg-blue-500/90 text-sm text-white font-semibold shadow-md transition"
-          >
-            ← Back to Dashboard
-          </button>
-        </div>
+        <TopMenuButton />
+        <button
+          onClick={() => router.push("/dashboard")}
+          className="px-4 py-2 rounded-lg border border-blue-500 bg-blue-600 hover:bg-blue-500/90 text-sm text-white font-semibold shadow-md transition"
+        >
+          ← Back to Dashboard
+        </button>
+      </div>
     </main>
   );
 }

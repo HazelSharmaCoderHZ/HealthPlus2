@@ -18,6 +18,20 @@ html, body {
   color: white;
 }
 
+/* Cursor ball smoothing */
+#cursor-ball {
+  pointer-events: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  transform: translate(-50%, -50%);
+  transition: transform 0.07s linear;
+  z-index: 9999;
+}
+#cursor-ball {
+  transition: top 0.06s linear, left 0.06s linear;
+}
+
 
 .dna {
   position: relative;

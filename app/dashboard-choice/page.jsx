@@ -108,7 +108,7 @@ export default function DashboardChoicePage() {
             // If group exists → open group page
             if (userGroups.length > 0) router.push(`/groups/${userGroups[0].id}`);
             // Else → open blank team dashboard
-            else router.push("/team-dashboard");
+            else router.push("/groups");
           }}
           className="cursor-pointer bg-white/50 border border-grey-500/50 backdrop-blur-xl rounded-2xl shadow-xl p-10 flex flex-col items-center justify-center hover:scale-[1.04] hover:border-blue-700 transition-transform duration-300"
         >
