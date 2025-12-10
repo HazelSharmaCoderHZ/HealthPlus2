@@ -3,61 +3,22 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // -----------------------
-    // Common helper functions
-    // -----------------------
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    // Check if the current user is the creator of a team
-    function isTeamCreator(teamId) {
-      // only true if the team doc exists and createdBy matches
-      let t = get(/databases/$(database)/documents/teams/$(teamId));
-      return isSignedIn()
-             && t.exists()
-             && t.data.createdBy == request.auth.uid;
-    }
-
-    // Get the membership document for the current user in a team
-    function myMembership(teamId) {
-      return get(/databases/$(database)/documents/teams/$(teamId)/members/$(request.auth.uid));
-    }
-
-    // Is current user an approved admin in this team?
-    function isTeamAdmin(teamId) {
-      let m = myMembership(teamId);
-      return isSignedIn()
-             && m.exists()
-             && m.data.role == "admin"
-             && m.data.status == "approved";
-    }
-
-    // Is current user an approved member (any role) in this team?
-    function isApprovedMember(teamId) {
-      let m = myMembership(teamId);
-      return isSignedIn()
-             && m.exists()
-             && m.data.status == "approved";
-    }
-
-    // -----------------------
     // USER PROFILE
     // -----------------------
     match /users/{userId} {
       allow read: if true;
       allow create: if request.auth != null && request.auth.uid == userId;
+      // require verified email for destructive/major profile changes (optional)
       allow update, delete: if request.auth != null
                            && request.auth.uid == userId
                            && request.auth.token.email_verified == true;
     }
 
     // -----------------------
-    // JOURNALS
-    // users/{userId}/journals/{dateId}
+    // Journals under users/{userId}/journals/{dateId}
     // -----------------------
     match /users/{userId}/journals/{dateId} {
       allow read: if request.auth != null && request.auth.uid == userId;
-
       allow create: if request.auth != null
                     && request.auth.uid == userId
                     && request.resource.data.keys().hasAny(['mood'])
@@ -65,13 +26,11 @@ service cloud.firestore {
                     && request.resource.data.keys().hasAny(['date'])
                     && request.resource.data.date is string
                     && request.resource.data.date == dateId;
-
       allow update: if request.auth != null
                     && request.auth.uid == userId
                     && request.resource.data.mood is string
                     && request.resource.data.date is string
                     && request.resource.data.date == dateId;
-
       allow delete: if request.auth != null && request.auth.uid == userId;
     }
 
@@ -80,6 +39,7 @@ service cloud.firestore {
     // users/{userId}/waterIntake/{dateId}
     // -----------------------
     match /users/{userId}/waterIntake/{dateId} {
+      // owner-only
       allow read: if request.auth != null && request.auth.uid == userId;
 
       allow create: if request.auth != null
@@ -121,7 +81,8 @@ service cloud.firestore {
     match /teams/{teamId} {
       allow read: if true;
 
-      allow create: if isSignedIn()
+      // only authenticated user creating team; createdBy must be auth.uid
+      allow create: if request.auth != null
                     && request.resource.data.createdBy == request.auth.uid
                     && request.resource.data.name is string
                     && request.resource.data.name.size() > 0
@@ -136,44 +97,71 @@ service cloud.firestore {
     // memberId = userId
     // -----------------------
     match /teams/{teamId}/members/{memberId} {
-      // READ:
+      // READ: admins, approved members, or the member themself
       allow read: if isTeamAdmin(teamId)
                   || isApprovedMember(teamId)
-                  || (isSignedIn() && memberId == request.auth.uid);
+                  || (request.auth != null && memberId == request.auth.uid);
 
       // CREATE:
       // - only for themselves (memberId == auth.uid)
-      // - creator should be able to create admin+approved for themself even if team doc is not yet visible to rules
-      // - normal users can only create member+pending
-      allow create: if isSignedIn()
-              && memberId == request.auth.uid
-              && request.resource.data.userId == request.auth.uid
-              && request.resource.data.teamId == teamId
-              && request.resource.data.role in ["member", "admin"]
-              && request.resource.data.status in ["pending", "approved"]
-              && (
-                // allow creator to create admin+approved for themselves
-                (
-                  request.resource.data.role == "admin" &&
-                  request.resource.data.status == "approved"
-                )
-                ||
-                (
-                  request.resource.data.role == "member" &&
-                  request.resource.data.status == "pending"
-                )
-              );
-
+      // - team creator may create admin+approved for themselves
+      // - normal users may only create member+pending
+      allow create: if request.auth != null
+                    && memberId == request.auth.uid
+                    && request.resource.data.userId == request.auth.uid
+                    && request.resource.data.teamId == teamId
+                    && request.resource.data.role in ["member", "admin"]
+                    && request.resource.data.status in ["pending", "approved"]
+                    && (
+                      (
+                        // team creator may create admin+approved for themselves
+                        request.resource.data.role == "admin"
+                        && request.resource.data.status == "approved"
+                        && get(/databases/$(database)/documents/teams/$(teamId)).data.createdBy == request.auth.uid
+                      )
+                      ||
+                      (
+                        // normal users can only create member+pending
+                        request.resource.data.role == "member"
+                        && request.resource.data.status == "pending"
+                      )
+                    );
 
       // UPDATE:
+      // Admins can update membership status (approve) but must not change userId/teamId/role
       allow update: if isTeamAdmin(teamId)
                     && request.resource.data.userId == resource.data.userId
                     && request.resource.data.teamId == resource.data.teamId
-                    && request.resource.data.role == resource.data.role;
+                    && request.resource.data.role == resource.data.role
+                    && request.resource.data.status in ["pending", "approved"];
 
-      // DELETE:
+      // DELETE: team admins or the member themself
       allow delete: if isTeamAdmin(teamId)
-                    || (isSignedIn() && memberId == request.auth.uid);
+                    || (request.auth != null && memberId == request.auth.uid);
+    }
+
+    // Helper functions for the team rules
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function myMembership(teamId) {
+      return get(/databases/$(database)/documents/teams/$(teamId)/members/$(request.auth.uid));
+    }
+
+    function isTeamAdmin(teamId) {
+      let m = myMembership(teamId);
+      return request.auth != null
+             && m.exists()
+             && m.data.role == "admin"
+             && m.data.status == "approved";
+    }
+
+    function isApprovedMember(teamId) {
+      let m = myMembership(teamId);
+      return request.auth != null
+             && m.exists()
+             && m.data.status == "approved";
     }
 
     // -----------------------

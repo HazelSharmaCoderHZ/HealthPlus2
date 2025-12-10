@@ -24,6 +24,8 @@ export type AuthContextValue = {
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
   signOutUser: () => Promise<void>;
+  // Added alias-friendly logout method (keeps backwards compatibility)
+  logout: () => Promise<void>;
   signInEmail: (email: string, password: string) => Promise<void>;
   signUpEmail: (email: string, password: string, role?: string) => Promise<void>;
   resendVerification: () => Promise<void>;
@@ -129,7 +131,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       },
 
+      // Original signOutUser (keeps existing code working)
       signOutUser: async () => {
+        if (!safeAuth) return;
+        await signOut(safeAuth);
+      },
+
+      // Added logout alias for convenience (calls signOut as well)
+      logout: async () => {
         if (!safeAuth) return;
         await signOut(safeAuth);
       },
