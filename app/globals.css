@@ -32,6 +32,78 @@ html, body {
   transition: top 0.06s linear, left 0.06s linear;
 }
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom cursor styles */
+.cursor-none {
+  cursor: none;
+}
+
+/* Animated button styles */
+.animated-button {
+  position: relative;
+  background-color: #3b82f6; /* blue-600 */
+  color: white;
+  padding: 0.75rem 1.5rem; /* px-6 py-3 */
+  border-radius: 9999px; /* rounded-full */
+  font-weight: 600; /* font-semibold */
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease-in-out;
+  border: none;
+  cursor: pointer;
+}
+
+.animated-button .text {
+  position: relative;
+  z-index: 2;
+  transition: color 0.3s ease-in-out;
+}
+
+.animated-button .circle {
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background-color: #2563eb; /* blue-700 */
+  transition: width 0.4s ease-out, height 0.4s ease-out;
+  transform: translate(-50%, -50%);
+  left: var(--x, 50%); /* Use CSS variable for x position */
+  top: var(--y, 50%);  /* Use CSS variable for y position */
+  z-index: 1;
+}
+
+.animated-button:hover .circle {
+  width: 300%; /* Make it large enough to cover */
+  height: 300%;
+}
+
+.animated-button:hover {
+  box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.5), 0 4px 6px -2px rgba(59, 130, 246, 0.2);
+}
+
+/* Additional styles for image placeholders */
+.img-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(30, 41, 59, 0.7); /* slate-800 with transparency */
+  border: 1px solid rgba(71, 85, 105, 0.5); /* slate-700 with transparency */
+  color: #cbd5e1; /* slate-300 */
+  font-size: 1.125rem; /* text-lg */
+  text-align: center;
+  border-radius: 1.5rem; /* rounded-3xl */
+  overflow: hidden;
+}
+
+/* Ensure ScrollTrigger pin-spacer doesn't mess with layout */
+.pin-spacer-services {
+  min-height: 100vh !important;
+}
 
 .dna {
   position: relative;

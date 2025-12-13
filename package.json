@@ -3,6 +3,7 @@
     "@dataconnect/generated": "file:src/dataconnect-generated",
     "firebase": "^12.6.0",
     "framer-motion": "^12.23.12",
+    "gsap": "^3.14.2",
     "lucide-react": "^0.544.0",
     "next": "^13.5.8",
     "papaparse": "^5.5.3",
