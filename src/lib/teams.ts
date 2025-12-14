@@ -180,14 +180,42 @@ export async function removeMember(params: { teamId: string; userId: string }) {
 /**
  * Get all members of a team (ordered by createdAt)
  */
+
+
 export async function getTeamMembers(teamId: string) {
   if (!teamId) throw new Error("teamId is required");
   const db = getDb();
-  const col = collection(db, TEAMS_COLLECTION, teamId, MEMBERS_SUBCOLLECTION);
-  const q = query(col, orderBy("createdAt", "asc"));
-  const snap = await getDocs(q);
-  return snap.docs.map((d) => ({ id: d.id, ...(d.data() as TeamMembership) })) as TeamMembership[];
+
+  const snap = await getDocs(
+    collection(db, "teams", teamId, "members")
+  );
+
+  const members = [];
+
+  for (const d of snap.docs) {
+    const data = d.data();
+
+    let profile = null;
+    try {
+      const profileSnap = await getDoc(doc(db, "users", data.userId));
+      if (profileSnap.exists()) {
+        profile = profileSnap.data();
+      }
+    } catch (e) {
+      console.warn("Failed to fetch profile:", data.userId);
+    }
+
+    members.push({
+      id: d.id,
+      ...data,
+      profile,
+    });
+  }
+
+  return members;
 }
+
+
 
 /**
  * Find team by invite code

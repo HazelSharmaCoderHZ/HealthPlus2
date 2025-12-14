@@ -1,137 +1,182 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
-import { getTeam, getTeamUserStatsSafe } from "@/lib/teams";
+import { useParams } from "next/navigation";
+import { collection, getDocs, doc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import TopMenuButton from "components/TopMenuButton";
 
 export default function TeamStatsPage() {
-  const { user } = useAuth();
-  const params = useParams();
-  const router = useRouter();
-  const teamId = params?.teamID || params?.teamId;
-
-  const [team, setTeam] = useState(null);
-  const [stats, setStats] = useState([]);
+  const { teamID } = useParams();
+  const [nutritionRows, setNutritionRows] = useState([]);
+  const [sleepRows, setSleepRows] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [from, setFrom] = useState(() => {
-    const d = new Date(Date.now() - 1000 * 60 * 60 * 24 * 30);
-    return d.toISOString().slice(0, 10);
-  });
-  const [to, setTo] = useState(() => new Date().toISOString().slice(0, 10));
-  const [loadingStats, setLoadingStats] = useState(false);
 
   useEffect(() => {
-    if (!teamId) return;
-    (async () => {
-      setLoading(true);
-      try {
-        const t = await getTeam(teamId);
-        setTeam(t);
-      } catch (e) {
-        console.error("getTeam:", e);
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [teamId]);
+    if (!teamID) return;
+    fetchStats();
+  }, [teamID]);
 
-  async function loadStats() {
-    setLoadingStats(true);
+  async function fetchStats() {
+    setLoading(true);
+
     try {
-      const s = await getTeamUserStatsSafe(teamId, { from, to });
-      setStats(s);
-    } catch (e) {
-      console.error("getTeamUserStatsSafe:", e);
-      alert(e?.message || "Failed to load stats");
+      // 1️⃣ Get team members
+      const membersSnap = await getDocs(
+        collection(db, "teams", teamID, "members")
+      );
+
+      const members = membersSnap.docs.map(d => d.id);
+
+      const nutritionResult = [];
+      const sleepResult = [];
+
+      // =========================
+      // 🍽 NUTRITION (AVG CAL)
+      // =========================
+      for (const uid of members) {
+        let totalCalories = 0;
+        let entryCount = 0;
+
+        // same logic as nut/page.jsx
+        const userNutritionDoc = doc(db, "nutritionLogs", uid);
+        const dateCollections = await getDocs(
+          collection(userNutritionDoc)
+        );
+
+        for (const dateDoc of dateCollections.docs) {
+          const dayLogs = await getDocs(
+            collection(userNutritionDoc, dateDoc.id)
+          );
+
+          dayLogs.forEach(log => {
+            const calories = Number(log.data()?.calories || 0);
+            totalCalories += calories;
+            entryCount++;
+          });
+        }
+
+        if (entryCount > 0) {
+          nutritionResult.push({
+            user: uid.slice(0, 6),
+            avgCalories: Math.round(totalCalories / entryCount),
+          });
+        }
+      }
+
+      // =========================
+      // 😴 SLEEP (AVG HOURS)
+      // =========================
+      for (const uid of members) {
+        let totalSleep = 0;
+        let entryCount = 0;
+
+        // same logic as sleepcal/page.jsx
+        const sleepSnap = await getDocs(
+          collection(db, "users", uid, "sleepLogs")
+        );
+
+        sleepSnap.forEach(docSnap => {
+          const duration = Number(docSnap.data()?.duration || 0);
+          totalSleep += duration;
+          entryCount++;
+        });
+
+        if (entryCount > 0) {
+          sleepResult.push({
+            user: uid.slice(0, 6),
+            avgSleep: Number((totalSleep / entryCount).toFixed(1)),
+          });
+        }
+      }
+
+      setNutritionRows(nutritionResult);
+      setSleepRows(sleepResult);
+    } catch (err) {
+      console.error("Failed to load team stats:", err);
     } finally {
-      setLoadingStats(false);
+      setLoading(false);
     }
   }
 
-  function exportCSV() {
-    if (!stats.length) return alert("No stats to export");
-    const header = ["userId", "displayName", "gender", "age", "water_totalGlasses", "nutrition_supported", "nutrition_note"];
-    const rows = stats.map((r) => [
-      r.userId,
-      r.profile?.displayName ?? "",
-      r.gender ?? "",
-      r.age ?? "",
-      r.water?.totalGlasses ?? 0,
-      r.nutrition?.supported ? "yes" : "no",
-      r.nutrition?.note ?? "",
-    ]);
-    const csv = [header, ...rows].map((r) => r.map((c) => `"${String(c || "").replace(/"/g, '""')}"`).join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${team?.name ?? "team"}-stats-${from}-to-${to}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+  if (loading) {
+    return (
+      <div className="p-6 max-w-5xl mx-auto text-slate-600">
+        Loading team stats…
+      </div>
+    );
   }
 
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">{team?.name ?? "Team"} — Stats</h1>
-          <div className="text-sm text-slate-600">Invite code: <span className="font-medium">{team?.inviteCode}</span></div>
-        </div>
-        <div>
-          <button onClick={() => router.push(`/groups/${teamId}`)} className="px-3 py-1 rounded border">← Back</button>
-        </div>
-      </div>
+    <div className="p-6 max-w-5xl mx-auto space-y-10">
+      <TopMenuButton />
 
-      <div className="bg-white p-4 rounded shadow">
-        <div className="flex items-center gap-2">
-          <label className="text-sm">From</label>
-          <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} className="border p-1 rounded" />
-          <label className="text-sm">To</label>
-          <input type="date" value={to} onChange={(e) => setTo(e.target.value)} className="border p-1 rounded" />
-          <button onClick={loadStats} className="px-3 py-1 rounded bg-blue-600 text-white" disabled={loadingStats}>
-            {loadingStats ? "Loading..." : "Load Stats"}
-          </button>
-          <button onClick={exportCSV} className="px-3 py-1 rounded border">Export CSV</button>
-        </div>
+      <h1 className="text-3xl font-bold text-slate-900">
+        Team Health Overview
+      </h1>
 
-        <div className="mt-4">
-          <p className="text-sm text-slate-500">
-            Nutrition aggregation is <strong>not</strong> available client-side for nested subcollections (nutritionLogs/&lt;userId&gt;/&lt;dateId&gt;/&lt;logId&gt;).
-            To enable nutrition stats from the client, create a root collection <code>nutritionEntries</code> with fields <code>userId</code>, <code>date</code>, <code>calories</code>.
-          </p>
-        </div>
-      </div>
+      {/* ================= NUTRITION TABLE ================= */}
+      <div className="bg-white rounded-xl shadow border">
+        <h2 className="text-xl font-semibold px-6 pt-5 pb-3 text-blue-700">
+          🍽 Nutrition — Average Calories
+        </h2>
 
-      <div className="bg-white p-4 rounded shadow">
-        {stats.length === 0 ? (
-          <p className="text-sm text-slate-500">No stats loaded yet.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full table-auto text-sm">
-              <thead>
-                <tr className="text-left">
-                  <th className="px-3 py-2">User</th>
-                  <th className="px-3 py-2">Gender</th>
-                  <th className="px-3 py-2">Age</th>
-                  <th className="px-3 py-2">Water (glasses)</th>
-                  <th className="px-3 py-2">Nutrition supported</th>
+        <table className="w-full text-sm">
+          <thead className="bg-blue-50">
+            <tr>
+              <th className="px-6 py-3 text-left">Member</th>
+              <th className="px-6 py-3 text-right">Avg Calories</th>
+            </tr>
+          </thead>
+          <tbody>
+            {nutritionRows.length === 0 ? (
+              <tr>
+                <td colSpan="2" className="px-6 py-4 text-slate-500">
+                  No nutrition data yet
+                </td>
+              </tr>
+            ) : (
+              nutritionRows.map(row => (
+                <tr key={row.user} className="border-t">
+                  <td className="px-6 py-3 font-medium">{row.user}</td>
+                  <td className="px-6 py-3 text-right">{row.avgCalories} kcal</td>
                 </tr>
-              </thead>
-              <tbody>
-                {stats.map((s) => (
-                  <tr key={s.userId} className="border-t">
-                    <td className="px-3 py-2">{s.profile?.displayName ?? s.userId}</td>
-                    <td className="px-3 py-2">{s.gender ?? "—"}</td>
-                    <td className="px-3 py-2">{s.age ?? "—"}</td>
-                    <td className="px-3 py-2">{s.water?.totalGlasses ?? 0}</td>
-                    <td className="px-3 py-2">{s.nutrition?.supported ? "Yes" : "No"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* ================= SLEEP TABLE ================= */}
+      <div className="bg-white rounded-xl shadow border">
+        <h2 className="text-xl font-semibold px-6 pt-5 pb-3 text-green-700">
+          😴 Sleep — Average Hours
+        </h2>
+
+        <table className="w-full text-sm">
+          <thead className="bg-green-50">
+            <tr>
+              <th className="px-6 py-3 text-left">Member</th>
+              <th className="px-6 py-3 text-right">Avg Sleep (hrs)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sleepRows.length === 0 ? (
+              <tr>
+                <td colSpan="2" className="px-6 py-4 text-slate-500">
+                  No sleep data yet
+                </td>
+              </tr>
+            ) : (
+              sleepRows.map(row => (
+                <tr key={row.user} className="border-t">
+                  <td className="px-6 py-3 font-medium">{row.user}</td>
+                  <td className="px-6 py-3 text-right">{row.avgSleep} h</td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );
