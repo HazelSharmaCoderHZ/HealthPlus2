@@ -1,17 +1,72 @@
 'use client';
 
 import Link from "next/link";
-import { useRef, useLayoutEffect } from "react";
+import { useRef, useLayoutEffect, useEffect } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-// Import icons for professional appearance (requires: npm install lucide-react)
-import { Utensils, Calendar, ChefHat, Droplet, Moon, BarChart3, ArrowRight, X , CircleCheck} from 'lucide-react';
+import { Flip } from "gsap/Flip";
+import { SplitText } from "gsap/SplitText";
+
+// Import icons
+import { Utensils, Calendar, ChefHat, Droplet, Moon, BarChart3, ArrowRight, X , CircleCheck, HeartHandshake} from 'lucide-react';
 
 // Register all necessary plugins once globally
-gsap.registerPlugin(ScrollTrigger);
+gsap.registerPlugin(ScrollTrigger, Flip, SplitText);
 
+// --- Component to handle text splitting and word/line animation (Enhanced Flip Effect) ---
+const WordSplitText = ({ children, delay = 0 }) => {
+  const textRef = useRef(null);
+
+  useLayoutEffect(() => {
+    // 1. Split the text into words
+    const split = new SplitText(textRef.current, { type: "words,lines" });
+
+    // 2. Animate the words/lines
+    const textAnimation = gsap.from(split.words, {
+      y: 70, // Start lower
+      opacity: 0,
+      rotationX: -110, // More aggressive flip
+      transformOrigin: "center bottom", // Rotate from the bottom
+      stagger: 0.05, // Faster stagger
+      ease: "power3.out",
+      duration: 0.8,
+      delay: delay,
+      paused: true,
+    });
+
+    // 3. Link the animation to a ScrollTrigger
+    ScrollTrigger.create({
+      trigger: textRef.current.closest('section'), 
+      start: "top 70%",
+      end: "bottom center",
+      onEnter: () => textAnimation.play(),
+      onLeaveBack: () => textAnimation.reverse(),
+    });
+
+    return () => {
+      split.revert();
+      textAnimation.kill();
+    };
+  }, [delay]);
+
+  return <div ref={textRef}>{children}</div>;
+};
+
+const AboutImage = ({ alt, src }) => (
+    // Note: The image should be placed in the public directory, e.g., 'public/img1.png'
+    <div className="mt-12 w-full max-w-lg mx-auto overflow-hidden rounded-xl  border-blue-100/50">
+        <img 
+            src={src} // <-- The image URL/path is inserted here
+            alt={alt} 
+            // Setting a fixed aspect ratio or height is recommended if images aren't uniform
+            className="w-full h-full object-cover aspect-video" 
+        />
+    </div>
+);
+
+
+// --- The Main Component ---
 export default function HomePage() {
-  // Ref to scope all GSAP animations for clean cleanup
   const mainRef = useRef(null);
 
   /* ================= REFS ================= */
@@ -20,110 +75,138 @@ export default function HomePage() {
 
   const servicesSectionRef = useRef<HTMLDivElement | null>(null);
   const servicesTrackRef = useRef<HTMLDivElement | null>(null);
+  const servicesTitleRef = useRef<HTMLDivElement | null>(null);
+
+  const aboutPinSpacerRef = useRef(null);
+  const servicesPinSpacerRef = useRef(null);
 
   /* ================= GSAP ANIMATIONS & FIXES ================= */
   useLayoutEffect(() => {
-    // 1. Create a GSAP context to scope and automatically revert all animations
     let ctx = gsap.context(() => {
       
-      // --- ABOUT SECTION HORIZONTAL SCROLL FIX ---
+      // --- ABOUT SECTION HORIZONTAL SCROLL FIX (Subtle Scale) ---
       if (aboutSectionRef.current && aboutTrackRef.current) {
-        // Calculate the distance to scroll
+        const setAboutPinSpacerRef = (st) => {
+          aboutPinSpacerRef.current = st.spacer;
+          if (aboutPinSpacerRef.current) {
+            gsap.set(aboutPinSpacerRef.current, { clearProps: "width,height" });
+          }
+        };
+
         const aboutDistance =
           aboutTrackRef.current.scrollWidth -
           aboutSectionRef.current.offsetWidth;
 
-        // Create the Horizontal Scroll Timeline
         const aboutScrollTween = gsap.to(aboutTrackRef.current, {
           x: -aboutDistance,
           ease: "none",
         });
 
-        // Pin the section and link the scrollTween
         ScrollTrigger.create({
           trigger: aboutSectionRef.current,
           pin: true,
           start: "top top",
-          end: `+=${aboutDistance}`, // Use calculated distance for end point
+          end: `+=${aboutDistance}`,
           scrub: 1,
           animation: aboutScrollTween,
-        });
-
-        // --- ABOUT SLIDE FADE/SCALE EFFECT ---
-        gsap.fromTo(
-          aboutTrackRef.current.children,
-          { opacity: 0, scale: 0.95, x: 50 },
-          {
-            opacity: 1,
-            scale: 1,
-            x: 0,
-            stagger: 0.5,
-            ease: "power2.out",
-            scrollTrigger: {
-              trigger: aboutSectionRef.current,
-              start: "top 70%",
-              end: "bottom bottom",
-              toggleActions: "play none none reverse",
-              scrub: 0.5,
-            },
+          onRefreshInit: setAboutPinSpacerRef,
+          onUpdate: (self) => {
+            gsap.to(aboutTrackRef.current, {
+                scale: 1 + (self.progress * 0.03), 
+                duration: 0.5,
+                ease: "none",
+            });
           }
-        );
+        });
       }
 
-      // --- SERVICES SECTION HORIZONTAL SCROLL FIX ---
-      if (servicesSectionRef.current && servicesTrackRef.current) {
-        // Calculate the distance to scroll
+      // --- SERVICES SECTION HORIZONTAL SCROLL & CARD ANIMATIONS ---
+      if (servicesSectionRef.current && servicesTrackRef.current && servicesTitleRef.current) {
+        const setServicesPinSpacerRef = (st) => {
+          servicesPinSpacerRef.current = st.spacer;
+          if (servicesPinSpacerRef.current) {
+            gsap.set(servicesPinSpacerRef.current, { clearProps: "width,height" });
+          }
+        };
+        
         const servicesDistance =
           servicesTrackRef.current.scrollWidth -
           servicesSectionRef.current.offsetWidth;
 
-        // Create the Horizontal Scroll Timeline
         const servicesScrollTween = gsap.to(servicesTrackRef.current, {
           x: -servicesDistance,
           ease: "none",
         });
 
-        // Pin the section and link the scrollTween
         ScrollTrigger.create({
           trigger: servicesSectionRef.current,
           pin: true,
           start: "top top",
-          end: `+=${servicesDistance}`, // Use calculated distance for end point
+          end: `+=${servicesDistance}`,
           scrub: 1,
           animation: servicesScrollTween,
+          onRefreshInit: setServicesPinSpacerRef,
+        });
+
+        // --- SERVICES CARD ENTRANCE EFFECT (Scale/Fade) ---
+        gsap.from(servicesTrackRef.current.children, {
+            scale: 0.8,
+            opacity: 0,
+            x: 50, // Slide in from right
+            duration: 0.8,
+            stagger: 0.5,
+            ease: "power2.out",
+            scrollTrigger: {
+                trigger: servicesSectionRef.current,
+                containerAnimation: servicesScrollTween,
+                start: "left 80%",
+                end: "left 20%",
+                toggleActions: "play none none reverse",
+            }
         });
       }
-
-      // --- HERO TEXT PARALLAX ---
+      
+      // --- HERO TEXT PARALLAX (More Dramatic) ---
       gsap.fromTo(".hero-text-content", 
-        { y: 0, opacity: 1 },
+        { y: 0, opacity: 1, scale: 1 },
         {
-            y: -50, // Move up slightly
-            opacity: 0.5, // Fade slightly
-            ease: "none",
-            scrollTrigger: {
-                trigger: mainRef.current,
-                start: "top top",
-                end: "bottom center",
-                scrub: true,
-            }
+          y: -150, 
+          opacity: 0,
+          scale: 0.9, 
+          ease: "power2.in", 
+          scrollTrigger: {
+            trigger: mainRef.current,
+            start: "top top",
+            end: "20% top",
+            scrub: true,
+          }
         }
       );
 
-    }, mainRef); // <-- Scope the context to the component's main ref
+    }, mainRef);
 
-    // 2. Return the cleanup function
     return () => ctx.revert();
   }, []);
+
+  // Fix for ScrollTrigger Pin Spacer (Layout Shift)
+  useEffect(() => {
+    if (aboutPinSpacerRef.current) {
+        gsap.set(aboutPinSpacerRef.current, { clearProps: "width,height" });
+    }
+    if (servicesPinSpacerRef.current) {
+        gsap.set(servicesPinSpacerRef.current, { clearProps: "width,height" });
+    }
+  }, []);
+
 
   return (
     <div ref={mainRef} className="font-sans antialiased bg-white text-slate-900">
 
       {/* ================= NAVBAR ================= */}
-      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-blue-100/70 shadow-sm">
+      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-sm border-b border-blue-100/70 shadow-lg">
         <nav className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <Link href="/" className="font-extrabold text-blue-700 text-3xl tracking-tight transition duration-300 hover:text-blue-800">
-            HealthPlus
+            <HeartHandshake className="inline w-8 h-8 mr-2"/> HealthPlus
           </Link>
           <div className="hidden sm:flex gap-8 text-base font-semibold text-slate-700">
             <a href="#about" className="hover:text-blue-700 transition duration-200">About</a>
@@ -131,83 +214,109 @@ export default function HomePage() {
             <a href="#contact" className="hover:text-blue-700 transition duration-200">Contact</a>
           </div>
           <Link href="/auth/signup">
-             <button className="hidden sm:block px-6 py-2 bg-blue-600 text-white rounded-full font-semibold transition duration-300 hover:bg-blue-700 hover:shadow-lg transform hover:-translate-y-0.5">
-                Sign Up
+             <button className="hidden sm:block px-6 py-2 bg-blue-600 text-white rounded-full font-bold transition duration-300 hover:bg-blue-700 shadow-xl transform hover:-translate-y-1">
+               Start Free Trial
              </button>
           </Link>
         </nav>
       </header>
 
-      {/* ================= HERO ================= */}
-      <main className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-gradient-to-br from-white to-blue-50/70 relative overflow-hidden">
-  {/* Decorative background elements */}
-  <div className="absolute top-1/4 left-1/4 h-64 w-64 bg-blue-200/50 rounded-full blur-[100px] animate-pulse-slow"></div>
-  <div className="absolute bottom-1/4 right-1/4 h-80 w-80 bg-indigo-200/50 rounded-full blur-[100px] animate-pulse-slow delay-1000"></div>
+      {/* ================= HERO (Aesthetic) ================= */}
+      <main className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-gradient-to-tr from-white to-blue-50/70 relative overflow-hidden">
+        {/* Decorative background elements */}
+        <div className="absolute top-1/4 left-1/4 h-72 w-72 bg-blue-200/40 rounded-full blur-[120px] animate-pulse-slow"></div>
+        <div className="absolute bottom-1/4 right-1/4 h-96 w-96 bg-blue-300/30 rounded-full blur-[150px] animate-pulse-slow delay-1000"></div>
 
-  {/* Centered Hero Content */}
-  <div className="hero-text-content text-center max-w-5xl px-6 relative z-10 flex flex-col items-center justify-center">
-    <h1 className="text-5xl sm:text-7xl lg:text-8xl font-bold leading-tight tracking-tighter text-slate-900">
-      Your health is our{" "}
-      <span className="text-blue-700">priority</span>.
-    </h1>
+        {/* Centered Hero Content */}
+        <div className="hero-text-content text-center max-w-5xl px-6 relative z-10 flex flex-col items-center justify-center pt-24 pb-12">
+          <h1 className="text-5xl sm:text-7xl lg:text-8xl font-black leading-tight tracking-tighter text-slate-900">
+            Your health is our{" "}
+            <span className="text-blue-600">priority</span>.
+          </h1>
+          <p className="mt-6 text-2xl text-slate-600 max-w-3xl font-light">
+            The **premium** wellness platform designed for shared progress. Achieve goals faster, together.
+          </p>
 
-    <Link href="/auth/signup">
-      <button className="mt-12 px-6 py-4 rounded-full bg-blue-600 text-white font-bold text-sm shadow-xl transition duration-300 hover:bg-blue-700 hover:shadow-2xl transform hover:scale-[1.03]">
-        Get Started Today <ArrowRight className="inline ml-2 w-5 h-5" />
-      </button>
-    </Link>
-  </div>
-</main>
+          <Link href="/auth/signup">
+            <button className="mt-12 px-10 py-4 rounded-full bg-blue-600 text-white font-black text-lg shadow-2xl transition duration-500 hover:bg-blue-700 hover:shadow-3xl transform hover:scale-[1.08] hover:rotate-1">
+              Start Your Shared Journey <ArrowRight className="inline ml-3 w-6 h-6" />
+            </button>
+          </Link>
+        </div>
+      </main>
 
 
-      {/* ================= ABOUT (HORIZONTAL SCROLL) ================= */}
+      {/* ================= ABOUT (HORIZONTAL SCROLL & Word Split Animation - NO BOXES) ================= */}
       <section
         id="about"
         ref={aboutSectionRef}
-        className="h-screen overflow-hidden bg-white border-t border-b border-slate-200"
+        className="h-[150vh] overflow-hidden bg-white border-t border-b border-slate-200"
       >
-        <div ref={aboutTrackRef} className="flex h-full w-fit">
-
+        <div ref={aboutTrackRef} className="flex h-screen w-fit">
+          
           {/* SLIDE 1 */}
-          <Slide title="">
-           <h1 className="text-6xl sm:text-7xl font-bold leading-tight tracking-tighter text-slate-900">
-            Your <strong className="text-blue-700">Wellness Journey</strong>,
-            <br />
-            better when <strong className="text-blue-700">Shared</strong>.
-          </h1>
-           </Slide>
+          <Slide>
+            <WordSplitText>
+              <h1 className="text-6xl sm:text-7xl font-bold leading-tight tracking-tighter text-slate-900">
+                Your <strong className="text-blue-600">Wellness Journey</strong>,
+                <br />
+                better when <strong className="text-blue-600">Shared</strong>.
+              </h1>
+            </WordSplitText>
+          </Slide>
 
-          {/* SLIDE 2 */}
-          <Slide title="">
-             <h1 className="text-6xl sm:text-6xl font-bold leading-tight tracking-tighter text-slate-900">Whether you are a <span className="text-blue-700">family</span> or a <span className="text-blue-700">gym trainer</span>
-            </h1>
-            </Slide>
+          {/* SLIDE 2 - Family/Trainer (With Image) */}
+          <Slide>
+            <WordSplitText delay={0.1}>
+              <h1 className="text-6xl sm:text-6xl font-bold leading-tight tracking-tighter text-slate-900">
+                Whether you are a <span className="text-blue-600">family</span> or a <span className="text-blue-600">gym trainer</span>
+              </h1>
+            </WordSplitText>
+            <AboutImage alt="A family and a personal trainer tracking shared health goals"  src="/images/trainer.png"  />
+          </Slide>
 
-          {/* SLIDE 3 */}
-          <Slide title="">
-           <h1 className="text-6xl sm:text-6xl font-bold leading-tight tracking-tighter text-slate-900"> or a <span className="text-blue-700">long-distance couple</span> or a fitness freak <span className="text-blue-700">without a partner</span> ?
-            </h1></Slide>
+          {/* SLIDE 3 - Long Distance Couple (With Image) */}
+          <Slide>
+            <WordSplitText delay={0.2}>
+              <h1 className="text-6xl sm:text-6xl font-bold leading-tight tracking-tighter text-slate-900">
+                or a <span className="text-blue-600">long-distance couple</span> or a fitness freak <span className="text-blue-600">without a partner</span> ?
+              </h1>
+            </WordSplitText>
+            <AboutImage alt="A long-distance couple sharing fitness data and statistics" src="images/couple.png" />
+          </Slide>
 
           {/* SLIDE 4 */}
-          <Slide title="">
-            <h2 className="text-6xl sm:text-7xl font-bold leading-tight tracking-tighter text-slate-900"> <span className="text-blue-700">HealthPlus</span> is just for you!</h2>
-            </Slide>
-
+          <Slide>
+            <WordSplitText delay={0.3}>
+              <h2 className="text-6xl sm:text-7xl font-bold leading-tight tracking-tighter text-slate-900">
+                <span className="text-blue-600">HealthPlus</span> is just for you!
+              </h2>
+            </WordSplitText>
+          </Slide>
         </div>
       </section>
 
-      {/* ================= SERVICES (HORIZONTAL SCROLL) ================= */}
+      {/* ================= SERVICES (HORIZONTAL SCROLL & STICKY TITLE) ================= */}
       <section
         id="services"
         ref={servicesSectionRef}
-        className="h-screen bg-blue-500 overflow-hidden border-b border-slate-200"
+        className="h-[150vh] bg-white overflow-hidden border-b border-slate-200 relative"
       >
-        <div ref={servicesTrackRef} className="flex h-full w-fit">
+        {/* Sticky Title (Trendy effect) */}
+        <div ref={servicesTitleRef} className="sticky top-0 z-20 h-24 flex items-center justify-center bg-white/95 backdrop-blur-sm shadow-inner border-b border-blue-100">
+            <h3 className="text-4xl lg:text-5xl font-black text-slate-900 tracking-tighter">
+                Our Core <span className="text-blue-600">Services</span> 
+            </h3>
+        </div>
 
-          {/* SLIDE 1: Callout */}
-          <ServiceIntroSlide>
-            Our Core Services
-          </ServiceIntroSlide>
+        <div ref={servicesTrackRef} className="flex h-[calc(100vh-6rem)] w-fit">
+
+          {/* SLIDE 1: Intro/Gap */}
+          <div className="min-w-[100vw] h-full flex items-center justify-center bg-white">
+            <p className="text-xl text-slate-500 max-w-lg text-center">
+              Discover the tools that will change the way you track and share your health goals.
+            </p>
+          </div>
 
           <ServiceCard icon={Utensils} title="Nutrition Scanner">
             Instantly analyze nutrition and make smarter food choices with our sophisticated AI-powered meal scanner.
@@ -239,7 +348,7 @@ export default function HomePage() {
       {/* ================= CONTACT ================= */}
       <section
         id="contact"
-        className="py-24 bg-white text-center"
+        className="py-24 bg-gradient-to-t from-white to-blue-50/70 text-center"
       >
         <div className="max-w-4xl mx-auto px-6">
           <h2 className="text-4xl font-extrabold text-slate-900 mb-4">
@@ -286,20 +395,16 @@ export default function HomePage() {
 
 /* ================= COMPONENTS (Refined) ================= */
 
-// --- Component for Horizontal Scroll Slides ---
+// --- Component for Horizontal Scroll Slides (Box Removed) ---
 function Slide({
-  title,
   children,
 }: {
-  title: string;
   children: React.ReactNode;
 }) {
   return (
-    <div className={`min-w-[100vw] h-full flex items-center justify-center px-16 bg-white`}>
-      <div className="max-w-3xl text-center p-8">
-        <h2 className="text-5xl font-extrabold text-blue-700 mb-6 border-b-4 border-blue-100 pb-2">
-          {title}
-        </h2>
+    <div className={`min-w-[100vw] h-full flex items-center justify-center px-16 bg-white/70 backdrop-blur-sm`}>
+      {/* Removed the box styling: max-w-4xl text-center p-12 bg-white/60 rounded-3xl shadow-2xl border-4 border-blue-200/50 */}
+      <div className="max-w-4xl text-center p-4"> 
         <div className="text-xl text-slate-700 leading-relaxed space-y-4">
           {children}
         </div>
@@ -308,45 +413,24 @@ function Slide({
   );
 }
 
-// --- Component for the Services Intro Slide ---
-function ServiceIntroSlide({
-    children,
-}: {
-    children: React.ReactNode;
-}) {
-    return (
-        <div className="min-w-[100vw] h-full flex items-center justify-center px-16 bg-slate-50">
-            <div className="max-w-full max-h-full text-center p-12 rounded-3xl ">
-                <h3 className="text-7xl font-bold text-slate-900 mb-4">
-                    Our Core <br></br><span className="text-blue-600">Services</span> 
-                </h3>
-                
-                
-            </div>
-        </div>
-    );
-}
-
-
-// --- Component for Professional Service Cards ---
-// The 'icon' prop takes a Lucide React component (e.g., Utensils)
+// --- Component for Professional Service Cards (Unchanged) ---
 function ServiceCard({
   icon: Icon,
   title,
   children,
 }: {
-  icon: React.ElementType; // Type for Lucide React component
+  icon: React.ElementType;
   title: string;
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-w-[40vw] h-full flex items-center justify-center bg-slate-50">
-      <div className="bg-white p-10 rounded-3xl shadow-2xl max-w-sm text-center w-full h-2/3 transform transition duration-300 hover:scale-[1.05] border-t-4 border-b-4 border-blue-200/50 hover:border-blue-500/80 cursor-default">
-        <div className="text-blue-600 mb-4 p-4 rounded-full inline-block bg-blue-100/50 shadow-inner">
-          <Icon className="w-8 h-8"/>
+    <div className="min-w-[50vw] h-full flex items-center justify-center bg-white p-4"> 
+      <div className="bg-white p-10 rounded-3xl shadow-2xl max-w-lg text-center w-full h-[60vh] transform transition duration-500 hover:scale-[1.05] border border-slate-100 hover:border-blue-500/80 cursor-default flex flex-col justify-center items-center">
+        <div className="text-blue-600 mb-6 p-5 rounded-full inline-block bg-blue-100/70 shadow-inner">
+          <Icon className="w-10 h-10"/>
         </div>
-        <h3 className="text-2xl font-bold mb-3 text-blue-800">{title}</h3>
-        <p className="text-md text-slate-600 leading-relaxed">{children}</p>
+        <h3 className="text-3xl font-bold mb-4 text-blue-800 tracking-tight">{title}</h3>
+        <p className="text-lg text-slate-600 leading-relaxed max-w-sm">{children}</p>
       </div>
     </div>
   );
