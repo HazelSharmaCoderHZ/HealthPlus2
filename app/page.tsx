@@ -204,8 +204,8 @@ export default function HomePage() {
 
       {/* ================= NAVBAR ================= */}
       <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-sm border-b border-blue-100/70 shadow-lg">
-        <nav className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <Link href="/" className="font-extrabold text-blue-700 text-3xl tracking-tight transition duration-300 hover:text-blue-800">
+        <nav className="max-w-7xl mx-auto px-5 h-19.5 flex items-center justify-between">
+          <Link href="/" className="font-bold text-blue-700 text-xl tracking-tight transition duration-300 hover:text-blue-800">
             <HeartHandshake className="inline w-8 h-8 mr-2"/> HealthPlus
           </Link>
           <div className="hidden sm:flex gap-8 text-base font-semibold text-slate-700">
@@ -214,8 +214,8 @@ export default function HomePage() {
             <a href="#contact" className="hover:text-blue-700 transition duration-200">Contact</a>
           </div>
           <Link href="/auth/signup">
-             <button className="hidden sm:block px-6 py-2 bg-blue-600 text-white rounded-full font-bold transition duration-300 hover:bg-blue-700 shadow-xl transform hover:-translate-y-1">
-               Start Free Trial
+             <button className="hidden sm:block px-3 py-2 bg-blue-600 text-white rounded-full  transition duration-300 hover:bg-blue-700 shadow-xl transform hover:bg-blue-400">
+               Login
              </button>
           </Link>
         </nav>
@@ -237,9 +237,9 @@ export default function HomePage() {
             Shared progress, Achieve goals faster & together.
           </p>
 
-          <Link href="/auth/signup">
-            <button className="mt-12 px-10 py-4 rounded-full bg-blue-600 text-white font-black text-lg shadow-2xl transition duration-500 hover:bg-blue-700 hover:shadow-3xl transform hover:scale-[1.08] hover:rotate-1">
-              Start Your Shared Journey <ArrowRight className="inline ml-3 w-6 h-6" />
+          <Link href="/auth/login">
+            <button className="mt-12 px-5 py-2 rounded-full bg-blue-600 text-white font-black text-lg shadow-2xl transition duration-500 hover:bg-blue-700 hover:shadow-3xl transform hover:scale-[1.08]">
+              Get Started <ArrowRight className="inline ml-3 w-6 h-6" />
             </button>
           </Link>
         </div>
@@ -361,7 +361,7 @@ export default function HomePage() {
           <div className="flex justify-center flex-wrap gap-6 text-lg font-semibold">
             <a 
               href="mailto:sharmahazel310@gmail.com"
-              className="px-8 py-3 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 transition duration-300 hover:bg-blue-100 hover:shadow-lg transform hover:-translate-y-0.5"
+              className="px-8 py-3 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 transition duration-300 hover:bg-blue-100 hover:shadow-lg transform "
             >
               📧 Email Us
             </a>
@@ -369,7 +369,7 @@ export default function HomePage() {
               href="https://github.com/HazelSharmaCoderHZ"
               target="_blank"
               rel="noopener noreferrer"
-              className="px-8 py-3 rounded-xl bg-slate-100 border border-slate-300 text-slate-700 transition duration-300 hover:bg-slate-200 hover:shadow-lg transform hover:-translate-y-0.5"
+              className="px-8 py-3 rounded-xl bg-slate-100 border border-slate-300 text-slate-700 transition duration-300 hover:bg-slate-200 hover:shadow-lg transform "
             >
               🖥 GitHub
             </a>
@@ -377,7 +377,7 @@ export default function HomePage() {
               href="https://www.linkedin.com/in/hazelsharma-it/"
               target="_blank"
               rel="noopener noreferrer"
-              className="px-8 py-3 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 transition duration-300 hover:bg-blue-100 hover:shadow-lg transform hover:-translate-y-0.5"
+              className="px-8 py-3 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 transition duration-300 hover:bg-blue-100 hover:shadow-lg transform "
             >
               ↗ LinkedIn Profile
             </a>
