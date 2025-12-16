@@ -234,7 +234,7 @@ export default function HomePage() {
             <span className="text-blue-600">priority</span>.
           </h1>
           <p className="mt-6 text-2xl text-slate-600 max-w-3xl font-light">
-            The **premium** wellness platform designed for shared progress. Achieve goals faster, together.
+            Shared progress, Achieve goals faster & together.
           </p>
 
           <Link href="/auth/signup">
@@ -289,7 +289,7 @@ export default function HomePage() {
           <Slide>
             <WordSplitText delay={0.3}>
               <h2 className="text-6xl sm:text-7xl font-bold leading-tight tracking-tighter text-slate-900">
-                <span className="text-blue-600">HealthPlus</span> is just for you!
+                <span className="text-blue-600">HealthPlus</span> is just <br></br>for you!
               </h2>
             </WordSplitText>
           </Slide>
@@ -300,10 +300,10 @@ export default function HomePage() {
       <section
         id="services"
         ref={servicesSectionRef}
-        className="h-[150vh] bg-white overflow-hidden border-b border-slate-200 relative"
+        className="h-[150vh] overflow-hidden relative"
       >
         {/* Sticky Title (Trendy effect) */}
-        <div ref={servicesTitleRef} className="sticky top-0 z-20 h-24 flex items-center justify-center bg-white/95 backdrop-blur-sm shadow-inner border-b border-blue-100">
+        <div ref={servicesTitleRef} className="sticky top-0 z-20 h-24 flex items-center justify-center bg-white/95 ">
             <h3 className="text-4xl lg:text-5xl font-black text-slate-900 tracking-tighter">
                 Our Core <span className="text-blue-600">Services</span> 
             </h3>
@@ -313,9 +313,9 @@ export default function HomePage() {
 
           {/* SLIDE 1: Intro/Gap */}
           <div className="min-w-[100vw] h-full flex items-center justify-center bg-white">
-            <p className="text-xl text-slate-500 max-w-lg text-center">
-              Discover the tools that will change the way you track and share your health goals.
-            </p>
+            <img src= "/images/services.png"
+            className="w-2/3 h-6/7 object-cover aspect-video" 
+        ></img>
           </div>
 
           <ServiceCard icon={Utensils} title="Nutrition Scanner">
