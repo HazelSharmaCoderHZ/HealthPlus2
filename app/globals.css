@@ -7,9 +7,9 @@
 
 /* custom styles */
 :root {
-  --bg-start: #a0cee0;
+  --bg-start: #e1f0f7;
   --bg-center: #ffffff;
-  --bg-end:#c5eaf9;
+  --bg-end:#e2eef3;
 }
 
 html, body {
@@ -17,6 +17,7 @@ html, body {
   background: linear-gradient(to right, var(--bg-start), var(--bg-center), var(--bg-end));
   color: white;
 }
+
 
 /* Cursor ball smoothing */
 #cursor-ball {

@@ -8,7 +8,8 @@ import { Flip } from "gsap/Flip";
 import { SplitText } from "gsap/SplitText";
 
 // Import icons
-import { Utensils, Calendar, ChefHat, Droplet, Moon, BarChart3, ArrowRight, X , CircleCheck, HeartHandshake} from 'lucide-react';
+import { Utensils, Calendar, ChefHat, Droplet, Moon, BarChart3, ArrowRight, X , CircleCheck,TrendingUp, HeartHandshake} from 'lucide-react';
+ 
 
 // Register all necessary plugins once globally
 gsap.registerPlugin(ScrollTrigger, Flip, SplitText);
@@ -17,10 +18,10 @@ gsap.registerPlugin(ScrollTrigger, Flip, SplitText);
 const WordSplitText = ({ children, delay = 0 }) => {
   const textRef = useRef(null);
 
+
   useLayoutEffect(() => {
     // 1. Split the text into words
     const split = new SplitText(textRef.current, { type: "words,lines" });
-
     // 2. Animate the words/lines
     const textAnimation = gsap.from(split.words, {
       y: 70, // Start lower
@@ -72,6 +73,8 @@ export default function HomePage() {
   /* ================= REFS ================= */
   const aboutSectionRef = useRef<HTMLDivElement | null>(null);
   const aboutTrackRef = useRef<HTMLDivElement | null>(null);
+  const efficiencySectionRef = useRef<HTMLDivElement | null>(null);
+  const chartPathRef = useRef<SVGPathElement | null>(null);
 
   const servicesSectionRef = useRef<HTMLDivElement | null>(null);
   const servicesTrackRef = useRef<HTMLDivElement | null>(null);
@@ -101,6 +104,8 @@ export default function HomePage() {
           x: -aboutDistance,
           ease: "none",
         });
+       
+
 
         ScrollTrigger.create({
           trigger: aboutSectionRef.current,
@@ -164,6 +169,21 @@ export default function HomePage() {
                 toggleActions: "play none none reverse",
             }
         });
+         // --- EFFICIENCY GRAPH ---
+      if (chartPathRef.current) {
+        const path = chartPathRef.current;
+        const length = path.getTotalLength();
+        gsap.set(path, { strokeDasharray: length, strokeDashoffset: length });
+        gsap.to(path, {
+          strokeDashoffset: 0,
+          scrollTrigger: {
+            trigger: efficiencySectionRef.current,
+            start: "top 60%",
+            end: "bottom 80%",
+            scrub: 1,
+          }
+        });
+      }
       }
       
       // --- HERO TEXT PARALLAX (More Dramatic) ---
@@ -296,6 +316,10 @@ export default function HomePage() {
         </div>
       </section>
 
+
+
+
+
       {/* ================= SERVICES (HORIZONTAL SCROLL & STICKY TITLE) ================= */}
       <section
         id="services"
@@ -312,11 +336,7 @@ export default function HomePage() {
         <div ref={servicesTrackRef} className="flex h-[calc(100vh-6rem)] w-fit">
 
           {/* SLIDE 1: Intro/Gap */}
-          <div className="min-w-[100vw] h-full flex items-center justify-center bg-white">
-            <img src= "/images/services.png"
-            className="w-2/3 h-6/7 object-cover aspect-video" 
-        ></img>
-          </div>
+          
 
           <ServiceCard icon={Utensils} title="Nutrition Scanner">
             Instantly analyze nutrition and make smarter food choices with our sophisticated AI-powered meal scanner.
@@ -344,6 +364,25 @@ export default function HomePage() {
 
         </div>
       </section>
+
+
+
+{/* EFFICIENCY SECTION */}
+      <section ref={efficiencySectionRef} className="py-24 bg-white px-6">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-12">
+          <div className="flex-1">
+            <h2 className="text-4xl md:text-7xl font-black tracking-tighter">Increase your <br/><span className="text-blue-600">efficiency</span> and productivity.</h2>
+            <p className="mt-6 text-xl text-slate-500">Shared goals lead to 40% higher completion rates.</p>
+          </div>
+          <div className="flex-1 w-full min-h-[300px]">
+            <svg viewBox="0 0 500 300" className="w-full drop-shadow-2xl">
+              <path ref={chartPathRef} d="M10,280 L100,240 L200,260 L300,120 L400,140 L490,20" fill="none" stroke="#2563eb" strokeWidth="8" strokeLinecap="round" />
+            </svg>
+          </div>
+        </div>
+      </section>
+
+
 
       {/* ================= CONTACT ================= */}
       <section
@@ -426,7 +465,7 @@ function ServiceCard({
   return (
     <div className="min-w-[50vw] h-full flex items-center justify-center bg-white p-4"> 
       <div className="bg-white p-10 rounded-3xl shadow-2xl max-w-lg text-center w-full h-[60vh] transform transition duration-500 hover:scale-[1.05] border border-slate-100 hover:border-blue-500/80 cursor-default flex flex-col justify-center items-center">
-        <div className="text-blue-600 mb-6 p-5 rounded-full inline-block bg-blue-100/70 shadow-inner">
+        <div className="text-white mb-6 p-5 rounded-full inline-block bg-blue-500 shadow-inner">
           <Icon className="w-10 h-10"/>
         </div>
         <h3 className="text-3xl font-bold mb-4 text-blue-800 tracking-tight">{title}</h3>
@@ -435,3 +474,27 @@ function ServiceCard({
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*<div className="min-w-[100vw] h-full flex items-center justify-center bg-white">
+            <div className="flex items-center gap-6">
+  <div className="loader"></div>
+  <div className="loader"></div>
+  <div className="loader"></div>
+  <div className="loader"></div>
+  </div>
+          </div>
+          */
