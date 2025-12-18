@@ -15,6 +15,7 @@ export default function GroupsPage() {
   const { user } = useAuth();
   const router = useRouter();
 
+
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(false);
 

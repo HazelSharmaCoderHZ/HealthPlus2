@@ -34,7 +34,7 @@
     ".next/types/**/*.ts",
     "**/*.ts",
     "**/*.tsx"
-, "app/recipes/route.js"  ],
+, "app/recipes/route.js", "app/setup/page.jsx"  ],
   "exclude": [
     "node_modules"
   ]
