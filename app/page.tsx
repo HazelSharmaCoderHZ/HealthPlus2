@@ -6,40 +6,105 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Flip } from "gsap/Flip";
 import { SplitText } from "gsap/SplitText";
+import { TextPlugin } from "gsap/TextPlugin";
 
 // Import icons
 import { Utensils, Calendar, ChefHat, Droplet, Moon, BarChart3, ArrowRight, X , CircleCheck,TrendingUp, HeartHandshake} from 'lucide-react';
  
 
 // Register all necessary plugins once globally
-gsap.registerPlugin(ScrollTrigger, Flip, SplitText);
-
+gsap.registerPlugin(ScrollTrigger, Flip, SplitText, TextPlugin);
 // --- Component to handle text splitting and word/line animation (Enhanced Flip Effect) ---
+
+// --- New Component for the "Dear Diary" style effect ---
+const ParticleExplosion = ({ triggerRef }) => {
+  const containerRef = useRef(null);
+
+  useLayoutEffect(() => {
+    const container = containerRef.current;
+    const shapes = ['circle', 'square', 'triangle'];
+    const colors = ['#2563eb', '#60a5fa', '#93c5fd', '#1d4ed8']; // Various Blues
+
+    const createParticle = () => {
+      const particle = document.createElement('div');
+      const shape = shapes[Math.floor(Math.random() * shapes.length)];
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      const size = Math.random() * 15 + 5;
+
+      particle.style.position = 'absolute';
+      particle.style.width = `${size}px`;
+      particle.style.height = `${size}px`;
+      particle.style.backgroundColor = color;
+      particle.style.left = '50%';
+      particle.style.top = '50%';
+      particle.style.borderRadius = shape === 'circle' ? '50%' : '2px';
+      particle.style.opacity = '0';
+      
+      container.appendChild(particle);
+
+      // Animate the particle
+      gsap.to(particle, {
+        x: (Math.random() - 0.5) * 600,
+        y: (Math.random() - 0.5) * 600,
+        rotation: Math.random() * 360,
+        opacity: 1,
+        duration: 1.5,
+        ease: "power2.out",
+        onComplete: () => {
+          gsap.to(particle, {
+            opacity: 0,
+            duration: 1,
+            onComplete: () => particle.remove()
+          });
+        }
+      });
+    };
+
+    ScrollTrigger.create({
+      trigger: triggerRef.current,
+      start: "left center",
+      containerAnimation: null, // We'll trigger this when the section is active
+      onEnter: () => {
+        for(let i = 0; i < 40; i++) {
+          setTimeout(createParticle, i * 50);
+        }
+      }
+    });
+  }, [triggerRef]);
+
+  return <div ref={containerRef} className="absolute inset-0 pointer-events-none overflow-hidden" />;
+};
+
+
+
+
 const WordSplitText = ({ children, delay = 0 }) => {
   const textRef = useRef(null);
 
-
   useLayoutEffect(() => {
-    // 1. Split the text into words
-    const split = new SplitText(textRef.current, { type: "words,lines" });
-    // 2. Animate the words/lines
+    // 1. Split text into lines first, then words
+    // We wrap lines in a div with 'overflow-hidden' to create the "mask"
+    const split = new SplitText(textRef.current, { 
+      type: "lines,words",
+      linesClass: "overflow-hidden" // This acts as the "window" for the text
+    });
+
+    // 2. Animate the words from below the mask
     const textAnimation = gsap.from(split.words, {
-      y: 70, // Start lower
+      y: "110%",             // Start completely below the line's container
+      rotationX: -20,        // Subtle tilt for depth
       opacity: 0,
-      rotationX: -110, // More aggressive flip
-      transformOrigin: "center bottom", // Rotate from the bottom
-      stagger: 0.05, // Faster stagger
-      ease: "power3.out",
-      duration: 0.8,
+      stagger: 0.03,         // Tight, professional stagger
+      duration: 1.2,         // Slightly longer duration for "luxury" feel
+      ease: "power4.out",    // Stronger ease-out for a snappy finish
       delay: delay,
       paused: true,
     });
 
-    // 3. Link the animation to a ScrollTrigger
+    // 3. Trigger the animation
     ScrollTrigger.create({
       trigger: textRef.current.closest('section'), 
-      start: "top 70%",
-      end: "bottom center",
+      start: "top 75%",      // Trigger slightly earlier for better UX
       onEnter: () => textAnimation.play(),
       onLeaveBack: () => textAnimation.reverse(),
     });
@@ -50,7 +115,11 @@ const WordSplitText = ({ children, delay = 0 }) => {
     };
   }, [delay]);
 
-  return <div ref={textRef}>{children}</div>;
+  return (
+    <div ref={textRef} className="perspective-1000">
+      {children}
+    </div>
+  );
 };
 
 const AboutImage = ({ alt, src }) => (
@@ -75,7 +144,8 @@ export default function HomePage() {
   const aboutTrackRef = useRef<HTMLDivElement | null>(null);
   const efficiencySectionRef = useRef<HTMLDivElement | null>(null);
   const chartPathRef = useRef<SVGPathElement | null>(null);
-
+  const typeTargetRef = useRef(null); // Ref for the text
+  const cursorRef = useRef(null);
   const servicesSectionRef = useRef<HTMLDivElement | null>(null);
   const servicesTrackRef = useRef<HTMLDivElement | null>(null);
   const servicesTitleRef = useRef<HTMLDivElement | null>(null);
@@ -86,7 +156,22 @@ export default function HomePage() {
   /* ================= GSAP ANIMATIONS & FIXES ================= */
   useLayoutEffect(() => {
     let ctx = gsap.context(() => {
+      // 1. TYPEWRITER EFFECT: "Track. Share. Improve."
+      const tl = gsap.timeline();
       
+      tl.to(typeTargetRef.current, {
+        duration: 2.5,
+        text: "Track. Share. Improve.",
+        ease: "none",
+      });
+
+      // 2. BLINKING CURSOR EFFECT
+      gsap.to(cursorRef.current, {
+        opacity: 0,
+        ease: "power2.inOut",
+        repeat: -1,
+        duration: 0.6
+      });
       // --- ABOUT SECTION HORIZONTAL SCROLL FIX (Subtle Scale) ---
       if (aboutSectionRef.current && aboutTrackRef.current) {
         const setAboutPinSpacerRef = (st) => {
@@ -249,9 +334,11 @@ export default function HomePage() {
 
         {/* Centered Hero Content */}
         <div className="hero-text-content text-center max-w-5xl px-6 relative z-10 flex flex-col items-center justify-center pt-24 pb-12">
-          <h1 className="text-5xl sm:text-7xl lg:text-8xl font-black leading-tight tracking-tighter text-slate-900">
-            Your health is our{" "}
-            <span className="text-blue-600">priority</span>.
+          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black leading-tight tracking-tighter text-slate-900">
+            <span ref={typeTargetRef}></span>
+            <span ref={cursorRef} className="text-blue-600 ml-1">|</span>
+           <br></br>
+            <span className="text-blue-600">Together.</span>
           </h1>
           <p className="mt-6 text-2xl text-slate-600 max-w-3xl font-light">
             Shared progress, Achieve goals faster & together.
@@ -288,7 +375,7 @@ export default function HomePage() {
           {/* SLIDE 2 - Family/Trainer (With Image) */}
           <Slide>
             <WordSplitText delay={0.1}>
-              <h1 className="text-6xl sm:text-6xl font-bold leading-tight tracking-tighter text-slate-900">
+              <h1 className="text-6xl sm:text-6xl font-bold  mb-5 text-slate-900">
                 Whether you are a <span className="text-blue-600">family</span> or a <span className="text-blue-600">gym trainer</span>
               </h1>
             </WordSplitText>
@@ -298,21 +385,44 @@ export default function HomePage() {
           {/* SLIDE 3 - Long Distance Couple (With Image) */}
           <Slide>
             <WordSplitText delay={0.2}>
-              <h1 className="text-6xl sm:text-6xl font-bold leading-tight tracking-tighter text-slate-900">
+              <h1 className="text-6xl sm:text-6xl mt-2 font-bold leading-tight tracking-tighter text-slate-900">
                 or a <span className="text-blue-600">long-distance couple</span> or a fitness freak <span className="text-blue-600">without a partner</span> ?
               </h1>
             </WordSplitText>
             <AboutImage alt="A long-distance couple sharing fitness data and statistics" src="images/couple.png" />
           </Slide>
 
-          {/* SLIDE 4 */}
-          <Slide>
-            <WordSplitText delay={0.3}>
-              <h2 className="text-6xl sm:text-7xl font-bold leading-tight tracking-tighter text-slate-900">
-                <span className="text-blue-600">HealthPlus</span> is just <br></br>for you!
-              </h2>
-            </WordSplitText>
-          </Slide>
+          {/* SLIDE 4 - HealthPlus is just for you! */}
+<div className="min-w-[100vw] h-full flex items-center justify-center relative overflow-hidden bg-blue-50/30">
+  
+  {/* The Particle Effect Component */}
+  <ParticleExplosion triggerRef={aboutSectionRef} />
+
+  <div className="text-center z-10 relative">
+    {/* Floating Blue Emojis/Icons */}
+    
+    <div className="absolute -bottom-20 -right-20  transition-all">
+      <HeartHandshake className="w-16 h-16 text-blue-300 opacity-50" />
+    </div>
+
+    <WordSplitText delay={0.3}>
+      <h2 className="text-7xl sm:text-8xl font-black  text-slate-900">
+        <span className="text-blue-600 drop-shadow-sm">HealthPlus</span> 
+        <br /> 
+        is <span className="relative">
+          just
+          <svg className="absolute -bottom-2 left-0 w-full h-3 text-blue-700" viewBox="0 0 100 10" preserveAspectRatio="none">
+            <path d="M0 5 Q 25 0 50 5 T 100 5" fill="none" stroke="currentColor" strokeWidth="4" />
+          </svg>
+        </span> 
+        <br />
+        for you!
+      </h2>
+    </WordSplitText>
+    
+   
+  </div>
+</div>
         </div>
       </section>
 
@@ -464,7 +574,7 @@ function ServiceCard({
 }) {
   return (
     <div className="min-w-[50vw] h-full flex items-center justify-center bg-white p-4"> 
-      <div className="bg-white p-10 rounded-3xl shadow-2xl max-w-lg text-center w-full h-[60vh] transform transition duration-500 hover:scale-[1.05] border border-slate-100 hover:border-blue-500/80 cursor-default flex flex-col justify-center items-center">
+      <div className="bg-white p-10 rounded-3xl shadow-2xl max-w-lg text-center w-full h-[60vh] transform transition duration-500 hover:scale-[1.05] border border-slate-100 hover:border-blue-500/80 hover:bg-blue-100/30 cursor-default flex flex-col justify-center items-center">
         <div className="text-white mb-6 p-5 rounded-full inline-block bg-blue-500 shadow-inner">
           <Icon className="w-10 h-10"/>
         </div>
