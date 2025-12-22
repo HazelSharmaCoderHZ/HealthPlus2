@@ -203,6 +203,20 @@ export default function HomePage() {
   const servicesPinSpacerRef = useRef(null);
 
   /* ================= GSAP ANIMATIONS & FIXES ================= */
+  useEffect(() => {
+  if (!showSplash && typeTargetRef.current) {
+    gsap.fromTo(
+      typeTargetRef.current,
+      { text: "" },
+      {
+        duration: 2.5,
+        text: "Track. Share. Improve.",
+        ease: "none",
+      }
+    );
+  }
+}, [showSplash]);
+
   useLayoutEffect(() => {
     let ctx = gsap.context(() => {
       // 1. TYPEWRITER EFFECT: "Track. Share. Improve."
@@ -385,7 +399,7 @@ export default function HomePage() {
         {/* Centered Hero Content */}
         <div className="hero-text-content text-center max-w-5xl px-6 relative z-10 flex flex-col items-center justify-center pt-24 pb-12">
           <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black leading-tight tracking-tighter text-slate-900">
-            <span ref={typeTargetRef}></span>
+            <span ref={typeTargetRef}> </span>
             <span ref={cursorRef} className="text-blue-600 ml-1">|</span>
            <br></br>
             <span className="text-blue-600">Together.</span>
