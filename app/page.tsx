@@ -377,7 +377,7 @@ export default function HomePage() {
       </header>
 
       {/* ================= HERO (Aesthetic) ================= */}
-      <main className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-gradient-to-tr from-white to-blue-50/70 relative overflow-hidden">
+      <main className="min-h-screen flex items-center justify-center bg-[radial-gradient(circle_at_center,#ffffff_0%,#bbddfa_70%)] relative overflow-hidden">
         {/* Decorative background elements */}
         <div className="absolute top-1/4 left-1/4 h-72 w-72 bg-blue-200/40 rounded-full blur-[120px] animate-pulse-slow"></div>
         <div className="absolute bottom-1/4 right-1/4 h-96 w-96 bg-blue-300/30 rounded-full blur-[150px] animate-pulse-slow delay-1000"></div>
@@ -403,14 +403,59 @@ export default function HomePage() {
       </main>
 
 
+
+<section
+  id="anim"
+  className="min-h-screen overflow-hidden relative  -mt-px
+             bg-gradient-to-b
+             from-[#275fcf]
+             via-[#1d0269]
+             to-[#1f0269]"
+>
+
+  {/* SLIDE 1: Intro/Gap */}
+          <div className="items-center justify-center mb-2">
+            <div className="mb-3">
+  <div className="rocket">
+    <div className="rocket-body">
+      <div className="body"></div>
+      <div className="fin fin-left"></div>
+      <div className="fin fin-right"></div>
+      <div className="window"></div>
+    </div>
+    <div className="exhaust-flame"></div>
+    <ul className="exhaust-fumes">
+      <li></li>
+      <li></li>
+      <li></li>
+      <li></li>
+      <li></li>
+      <li></li>
+      <li></li>
+      <li></li>
+      <li></li>
+    </ul>
+    <ul className="star">
+      <li></li>
+      <li></li>
+      <li></li>
+      <li></li>
+      <li></li>
+      <li></li>
+      <li></li>
+    </ul>
+  </div>
+  </div> 
+  </div>
+</section>
+
+
+
       {/* ================= ABOUT (HORIZONTAL SCROLL & Word Split Animation - NO BOXES) ================= */}
       <section
         id="about"
         ref={aboutSectionRef}
-        className="h-[150vh] overflow-hidden bg-gradient-to-b
-             from-white
-             via-white
-             bg-[#275fcf]"
+        className="h-screen  overflow-hidden "
       >
         <div ref={aboutTrackRef} className="flex h-screen w-fit">
           
@@ -540,56 +585,13 @@ export default function HomePage() {
       </section>
 
 
-<section
-  id="anim"
-  className="min-h-screen overflow-hidden relative  -mt-px
-             bg-gradient-to-b
-             from-[#275fcf]
-             via-[#1d0269]
-             to-[#1f0269]"
->
 
-  {/* SLIDE 1: Intro/Gap */}
-          <div className="items-center justify-center mb-2">
-            <div className="mb-3">
-  <div className="rocket">
-    <div className="rocket-body">
-      <div className="body"></div>
-      <div className="fin fin-left"></div>
-      <div className="fin fin-right"></div>
-      <div className="window"></div>
-    </div>
-    <div className="exhaust-flame"></div>
-    <ul className="exhaust-fumes">
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-    </ul>
-    <ul className="star">
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-    </ul>
-  </div>
-  </div> 
-  </div>
-</section>
 
       {/* ================= SERVICES (HORIZONTAL SCROLL & STICKY TITLE) ================= */}
       <section
         id="services"
         ref={servicesSectionRef}
-        className="h-[150vh] overflow-hidden relative"
+        className="h-screen overflow-hidden relative"
       >
         {/* Sticky Title (Trendy effect) */}
         <div ref={servicesTitleRef} className="sticky top-0 z-20 h-24 flex items-center justify-center bg-white/95 ">
@@ -598,7 +600,7 @@ export default function HomePage() {
             </h3>
         </div>
 
-        <div ref={servicesTrackRef} className="flex h-[calc(100vh-6rem)] w-fit">
+        <div ref={servicesTrackRef} className="flex h-[calc(100vh-6rem)] bg-[#bbddfa] w-fit">
 
           
 
@@ -632,7 +634,7 @@ export default function HomePage() {
 
 
 {/* EFFICIENCY SECTION */}
-      <section ref={efficiencySectionRef} className="py-24 bg-white px-6">
+      <section ref={efficiencySectionRef} className="py-24 min-h-screen bg-white px-6">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-12">
           <div className="flex-1">
             <h2 className="text-4xl md:text-7xl font-black tracking-tighter">Increase your <br/><span className="text-blue-600">efficiency</span> and productivity.</h2>
