@@ -377,7 +377,7 @@ export default function HomePage() {
       </header>
 
       {/* ================= HERO (Aesthetic) ================= */}
-      <main className="min-h-screen flex items-center justify-center bg-[radial-gradient(circle_at_center,#ffffff_0%,#bbddfa_70%)] relative overflow-hidden">
+      <main className="min-h-screen flex items-center justify-center bg-[radial-gradient(circle_at_center,#ffffff_0%,##deebfc_70%)] relative overflow-hidden">
         {/* Decorative background elements */}
         <div className="absolute top-1/4 left-1/4 h-72 w-72 bg-blue-200/40 rounded-full blur-[120px] animate-pulse-slow"></div>
         <div className="absolute bottom-1/4 right-1/4 h-96 w-96 bg-blue-300/30 rounded-full blur-[150px] animate-pulse-slow delay-1000"></div>
