@@ -1,7 +1,7 @@
 'use client';
 
 import Link from "next/link";
-import { useRef, useLayoutEffect, useEffect } from "react";
+import { useRef, useLayoutEffect, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Flip } from "gsap/Flip";
@@ -134,10 +134,59 @@ const AboutImage = ({ alt, src }) => (
     </div>
 );
 
+function SplashScreen({ onFinish }) {
+  const splashRef = useRef(null);
+  const iconRef = useRef(null);
+
+  useLayoutEffect(() => {
+    const tl = gsap.timeline({ onComplete: onFinish });
+
+    tl.fromTo(
+      splashRef.current,
+      { opacity: 1 },
+      { opacity: 1, duration: 0.2 }
+    )
+      .fromTo(
+        iconRef.current,
+        { scale: 0, rotate: -20 },
+        { scale: 1.4, rotate: 0, duration: 0.8, ease: "back.out(1.8)" }
+      )
+      .to(iconRef.current, {
+        scale: 1.15,
+        duration: 0.6,
+        yoyo: true,
+        repeat: 1,
+      })
+      .to(iconRef.current, {
+        scale: 0,
+        opacity: 0,
+        duration: 0.6,
+      })
+      .to(splashRef.current, {
+        opacity: 0,
+        duration: 0.6,
+      });
+  }, [onFinish]);
+
+  return (
+    <div
+      ref={splashRef}
+      className="fixed inset-0 z-[9999] bg-blue-600 flex items-center justify-center"
+    >
+      <div className="absolute w-[500px] h-[500px] bg-white/10 rounded-full blur-[140px]" />
+      <HeartHandshake
+        ref={iconRef}
+        className="w-32 h-32 text-white drop-shadow-2xl"
+      />
+    </div>
+  );
+}
+
 
 // --- The Main Component ---
 export default function HomePage() {
   const mainRef = useRef(null);
+  const [showSplash, setShowSplash] = useState(true);
 
   /* ================= REFS ================= */
   const aboutSectionRef = useRef<HTMLDivElement | null>(null);
@@ -306,6 +355,7 @@ export default function HomePage() {
 
   return (
     <div ref={mainRef} className="font-sans antialiased bg-white text-slate-900">
+{showSplash && <SplashScreen onFinish={() => setShowSplash(false)} />}
 
       {/* ================= NAVBAR ================= */}
       <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-sm border-b border-blue-100/70 shadow-lg">
@@ -357,20 +407,83 @@ export default function HomePage() {
       <section
         id="about"
         ref={aboutSectionRef}
-        className="h-[150vh] overflow-hidden bg-white border-t border-b border-slate-200"
+        className="h-[150vh] overflow-hidden bg-gradient-to-b
+             from-white
+             via-white
+             bg-[#275fcf]"
       >
         <div ref={aboutTrackRef} className="flex h-screen w-fit">
           
           {/* SLIDE 1 */}
-          <Slide>
-            <WordSplitText>
-              <h1 className="text-6xl sm:text-7xl font-bold leading-tight tracking-tighter text-slate-900">
-                Your <strong className="text-blue-600">Wellness Journey</strong>,
-                <br />
-                better when <strong className="text-blue-600">Shared</strong>.
-              </h1>
-            </WordSplitText>
-          </Slide>
+        <Slide>
+  <WordSplitText>
+    <h1 className="text-6xl sm:text-7xl font-bold leading-tight tracking-tighter text-slate-900 text-center">
+      Your <strong className="text-blue-600">Wellness Journey</strong>,
+      <br />
+      better when <strong className="text-blue-600">Shared</strong>.
+    </h1>
+
+    {/* SVG Wrapper */}
+    <div className="flex items-center justify-center mt-1">
+      {/* SVG filter definition (hidden, but global) */}
+      <svg width="0" height="0">
+        <defs>
+          <filter
+            id="goo"
+            x="-100%"
+            y="-100%"
+            width="300%"
+            height="300%"
+            colorInterpolationFilters="sRGB"
+          >
+            <feGaussianBlur
+              in="SourceGraphic"
+              stdDeviation={8}
+              result="blur"
+            />
+            <feColorMatrix
+              in="blur"
+              mode="matrix"
+              result="cm"
+              values="
+                1 0 0 0 0
+                0 1 0 0 0
+                0 0 1 0 0
+                0 0 0 21 -7
+              "
+            />
+          </filter>
+        </defs>
+      </svg>
+
+      {/* Main SVG */}
+      <svg
+        width="360"
+        height="240"
+        viewBox="-140 -140 540 400"
+        overflow="visible"
+      >
+        <g filter="url(#goo)">
+          <circle
+            cx="170"
+            cy="100"
+            r="54"
+            fill="#275EFE"
+            className="circle"
+          />
+          <circle
+            cx="170"
+            cy="100"
+            r="54"
+            fill="#275EFE"
+            className="circle right"
+          />
+        </g>
+      </svg>
+    </div>
+  </WordSplitText>
+</Slide>
+
 
           {/* SLIDE 2 - Family/Trainer (With Image) */}
           <Slide>
@@ -393,7 +506,7 @@ export default function HomePage() {
           </Slide>
 
           {/* SLIDE 4 - HealthPlus is just for you! */}
-<div className="min-w-[100vw] h-full flex items-center justify-center relative overflow-hidden bg-blue-50/30">
+<div className="min-w-[100vw] h-full flex items-center justify-center relative overflow-hidden">
   
   {/* The Particle Effect Component */}
   <ParticleExplosion triggerRef={aboutSectionRef} />
@@ -427,8 +540,50 @@ export default function HomePage() {
       </section>
 
 
+<section
+  id="anim"
+  className="min-h-screen overflow-hidden relative  -mt-px
+             bg-gradient-to-b
+             from-[#275fcf]
+             via-[#1d0269]
+             to-[#1f0269]"
+>
 
-
+  {/* SLIDE 1: Intro/Gap */}
+          <div className="items-center justify-center mb-2">
+            <div className="mb-3">
+  <div className="rocket">
+    <div className="rocket-body">
+      <div className="body"></div>
+      <div className="fin fin-left"></div>
+      <div className="fin fin-right"></div>
+      <div className="window"></div>
+    </div>
+    <div className="exhaust-flame"></div>
+    <ul className="exhaust-fumes">
+      <li></li>
+      <li></li>
+      <li></li>
+      <li></li>
+      <li></li>
+      <li></li>
+      <li></li>
+      <li></li>
+      <li></li>
+    </ul>
+    <ul className="star">
+      <li></li>
+      <li></li>
+      <li></li>
+      <li></li>
+      <li></li>
+      <li></li>
+      <li></li>
+    </ul>
+  </div>
+  </div> 
+  </div>
+</section>
 
       {/* ================= SERVICES (HORIZONTAL SCROLL & STICKY TITLE) ================= */}
       <section
@@ -438,14 +593,13 @@ export default function HomePage() {
       >
         {/* Sticky Title (Trendy effect) */}
         <div ref={servicesTitleRef} className="sticky top-0 z-20 h-24 flex items-center justify-center bg-white/95 ">
-            <h3 className="text-4xl lg:text-5xl font-black text-slate-900 tracking-tighter">
+            <h3 className="text-4xl lg:text-5xl font-black text-slate-900 mb-4 mt-6 tracking-tighter">
                 Our Core <span className="text-blue-600">Services</span> 
             </h3>
         </div>
 
         <div ref={servicesTrackRef} className="flex h-[calc(100vh-6rem)] w-fit">
 
-          {/* SLIDE 1: Intro/Gap */}
           
 
           <ServiceCard icon={Utensils} title="Nutrition Scanner">
@@ -497,7 +651,7 @@ export default function HomePage() {
       {/* ================= CONTACT ================= */}
       <section
         id="contact"
-        className="py-24 bg-gradient-to-t from-white to-blue-50/70 text-center"
+        className="py-24 bg-gradient-to-t from-white to-blue-100/70 text-center"
       >
         <div className="max-w-4xl mx-auto px-6">
           <h2 className="text-4xl font-extrabold text-slate-900 mb-4">
