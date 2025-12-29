@@ -171,7 +171,8 @@ function SplashScreen({ onFinish }) {
   return (
     <div
       ref={splashRef}
-      className="fixed inset-0 z-[9999] bg-blue-600 flex items-center justify-center"
+      className="fixed inset-0 z-[9999] bg-gradient-to-br from-blue-600 via-blue-400 to-emerald-400
+ flex items-center justify-center"
     >
       <div className="absolute w-[500px] h-[500px] bg-white/10 rounded-full blur-[140px]" />
       <HeartHandshake
@@ -185,6 +186,9 @@ function SplashScreen({ onFinish }) {
 
 // --- The Main Component ---
 export default function HomePage() {
+  const statsRef = useRef<HTMLDivElement | null>(null);
+const statsAnimatedRef = useRef(false);
+
   const mainRef = useRef(null);
   const [showSplash, setShowSplash] = useState(true);
 
@@ -218,6 +222,38 @@ export default function HomePage() {
 }, [showSplash]);
 
   useLayoutEffect(() => {
+if (statsRef.current) {
+  ScrollTrigger.create({
+    trigger: statsRef.current,
+    start: "top 75%",
+    once: true,
+    onEnter: () => {
+      if (statsAnimatedRef.current) return;
+      statsAnimatedRef.current = true;
+
+      const numbers = statsRef.current!.querySelectorAll("[data-value]");
+
+      numbers.forEach((el) => {
+        const target = Number(el.getAttribute("data-value"));
+
+        gsap.fromTo(
+          el,
+          { innerText: 0 },
+          {
+            innerText: target,
+            duration: 2,
+            ease: "power2.out",
+            snap: { innerText: 1 },
+            onUpdate: function () {
+              el.innerText = Math.floor(Number(el.innerText)).toLocaleString();
+            },
+          }
+        );
+      });
+    },
+  });
+}
+
     let ctx = gsap.context(() => {
       // 1. TYPEWRITER EFFECT: "Track. Share. Improve."
       const tl = gsap.timeline();
@@ -255,22 +291,25 @@ export default function HomePage() {
        
 
 
-        ScrollTrigger.create({
-          trigger: aboutSectionRef.current,
-          pin: true,
-          start: "top top",
-          end: `+=${aboutDistance}`,
-          scrub: 1,
-          animation: aboutScrollTween,
-          onRefreshInit: setAboutPinSpacerRef,
-          onUpdate: (self) => {
-            gsap.to(aboutTrackRef.current, {
-                scale: 1 + (self.progress * 0.03), 
-                duration: 0.5,
-                ease: "none",
-            });
-          }
-        });
+       ScrollTrigger.create({
+  trigger: aboutSectionRef.current,
+  pin: true,
+  anticipatePin: 1,
+  invalidateOnRefresh: true,
+  start: "top top",
+  end: `+=${aboutDistance}`,
+  scrub: 1,
+  animation: aboutScrollTween,
+  onRefreshInit: setAboutPinSpacerRef,
+  onUpdate: (self) => {
+    gsap.to(aboutTrackRef.current, {
+      scale: 1 + (self.progress * 0.03),
+      duration: 0.3,
+      ease: "none",
+    });
+  }
+});
+
       }
 
       // --- SERVICES SECTION HORIZONTAL SCROLL & CARD ANIMATIONS ---
@@ -292,14 +331,17 @@ export default function HomePage() {
         });
 
         ScrollTrigger.create({
-          trigger: servicesSectionRef.current,
-          pin: true,
-          start: "top top",
-          end: `+=${servicesDistance}`,
-          scrub: 1,
-          animation: servicesScrollTween,
-          onRefreshInit: setServicesPinSpacerRef,
-        });
+  trigger: servicesSectionRef.current,
+  pin: true,
+  anticipatePin: 1,
+  invalidateOnRefresh: true,
+  start: "top top",
+  end: `+=${servicesDistance}`,
+  scrub: 1,
+  animation: servicesScrollTween,
+  onRefreshInit: setServicesPinSpacerRef,
+});
+
 
         // --- SERVICES CARD ENTRANCE EFFECT (Scale/Fade) ---
         gsap.from(servicesTrackRef.current.children, {
@@ -352,6 +394,7 @@ export default function HomePage() {
       );
 
     }, mainRef);
+ScrollTrigger.refresh();
 
     return () => ctx.revert();
   }, []);
@@ -372,8 +415,8 @@ export default function HomePage() {
 {showSplash && <SplashScreen onFinish={() => setShowSplash(false)} />}
 
       {/* ================= NAVBAR ================= */}
-      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-sm border-b border-blue-100/70 shadow-lg">
-        <nav className="max-w-7xl mx-auto px-5 h-19.5 flex items-center justify-between">
+      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-sm border-b border-blue-100/70 shadow-md">
+        <nav className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <Link href="/" className="font-bold text-blue-700 text-xl tracking-tight transition duration-300 hover:text-blue-800">
             <HeartHandshake className="inline w-8 h-8 mr-2"/> HealthPlus
           </Link>
@@ -383,10 +426,11 @@ export default function HomePage() {
             <a href="#contact" className="hover:text-blue-700 transition duration-200">Contact</a>
           </div>
           <Link href="/auth/signup">
-             <button className="hidden sm:block px-3 py-2 bg-blue-600 text-white rounded-full  transition duration-300 hover:bg-blue-700 shadow-xl transform hover:bg-blue-400">
-               Login
-             </button>
+            <button className="px-4 py-2 rounded-full bg-blue-600 text-white font-black text-lg shadow-2xl transition duration-500 hover:bg-blue-700 hover:shadow-3xl transform hover:scale-[1.08]">
+              Login
+            </button>
           </Link>
+          
         </nav>
       </header>
 
@@ -397,12 +441,13 @@ export default function HomePage() {
         <div className="absolute bottom-1/4 right-1/4 h-96 w-96 bg-blue-300/30 rounded-full blur-[150px] animate-pulse-slow delay-1000"></div>
 
         {/* Centered Hero Content */}
-        <div className="hero-text-content text-center max-w-5xl px-6 relative z-10 flex flex-col items-center justify-center pt-24 pb-12">
+        <div className="hero-text-content text-center max-w-5xl px-6 relative z-10 flex flex-col items-center justify-center ">
           <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black leading-tight tracking-tighter text-slate-900">
             <span ref={typeTargetRef}> </span>
             <span ref={cursorRef} className="text-blue-600 ml-1">|</span>
            <br></br>
-            <span className="text-blue-600">Together.</span>
+            <span className=" bg-gradient-to-br from-blue-700 via-blue-600 to-cyan-500 bg-clip-text text-transparent
+  ">Together.</span>
           </h1>
           <p className="mt-6 text-2xl text-slate-600 max-w-3xl font-light">
             Shared progress, Achieve goals faster & together.
@@ -415,7 +460,57 @@ export default function HomePage() {
           </Link>
         </div>
       </main>
+{/* ================= TRUST STATS ================= */}
+<section className="py-28 bg-white">
+  <div className="max-w-5xl mx-auto px-6">
+    
+    <div ref={statsRef}  className="bg-blue-600 rounded-3xl px-10 py-16 shadow-2xl">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-12 text-center text-white">
 
+        <div>
+          <h3 className="text-5xl font-black">
+  <span data-value="50000">0</span>+
+</h3>
+
+          <p className="mt-2 text-blue-100">Active Users</p>
+        </div>
+
+        <div>
+          <h3 className="text-5xl font-black">
+  <span data-value="2000000">0</span>+
+</h3>
+
+          <p className="mt-2 text-blue-100">Goals Achieved</p>
+        </div>
+
+        <div>
+          <h3 className="text-5xl font-black">
+  <span data-value="98">0</span>%
+</h3>
+<p className="mt-2 text-blue-100">Satisfaction</p>
+        </div>
+
+      </div>
+    </div>
+
+    <div className="mt-16 grid sm:grid-cols-3 gap-8 text-center">
+  <div className="flex items-center justify-center gap-3 text-slate-700 font-semibold">
+    <CircleCheck className="text-xl font-extrabold text-blue-600" />
+    Clinically inspired tracking
+  </div>
+  <div className="flex items-center justify-center gap-3 text-slate-700 font-semibold">
+    <TrendingUp className="text-blue-600" />
+    Proven habit consistency
+  </div>
+  <div className="flex items-center justify-center gap-3 text-slate-700 font-semibold">
+    <HeartHandshake className="text-blue-600" />
+    Trusted by teams & families
+  </div>
+</div>
+
+
+  </div>
+</section>
 
 
 <section
@@ -477,9 +572,9 @@ export default function HomePage() {
         <Slide>
   <WordSplitText>
     <h1 className="text-6xl sm:text-7xl font-bold leading-tight tracking-tighter text-slate-900 text-center">
-      Your <strong className="text-blue-600">Wellness Journey</strong>,
+      Your <strong className="text-blue-500">Wellness Journey</strong>,
       <br />
-      better when <strong className="text-blue-600">Shared</strong>.
+      better when <strong className="text-blue-500">Shared</strong>.
     </h1>
 
     {/* SVG Wrapper */}
@@ -547,7 +642,7 @@ export default function HomePage() {
           {/* SLIDE 2 - Family/Trainer (With Image) */}
           <Slide>
             <WordSplitText delay={0.1}>
-              <h1 className="text-6xl sm:text-6xl font-bold  mb-5 text-slate-900">
+              <h1 className="text-6xl sm:text-6xl font-semibold  mb-5 text-slate-900">
                 Whether you are a <span className="text-blue-600">family</span> or a <span className="text-blue-600">gym trainer</span>
               </h1>
             </WordSplitText>
@@ -557,14 +652,27 @@ export default function HomePage() {
           {/* SLIDE 3 - Long Distance Couple (With Image) */}
           <Slide>
             <WordSplitText delay={0.2}>
-              <h1 className="text-6xl sm:text-6xl mt-2 font-bold leading-tight tracking-tighter text-slate-900">
+              <h1 className="text-6xl sm:text-6xl  tracking-tighter mb-4 font-semibold  text-slate-900">
                 or a <span className="text-blue-600">long-distance couple</span> or a fitness freak <span className="text-blue-600">without a partner</span> ?
               </h1>
             </WordSplitText>
             <AboutImage alt="A long-distance couple sharing fitness data and statistics" src="images/couple.png" />
           </Slide>
+<div className="min-w-[100vw] h-full flex items-center justify-center relative overflow-hidden"> {/* The Particle Effect Component */} <ParticleExplosion triggerRef={aboutSectionRef} /> <div className="text-center z-10 relative"> {/* Floating Blue Emojis/Icons */} <div className="absolute -bottom-20 -right-20 transition-all"> <HeartHandshake className="w-16 h-16 bg-gradient-to-br from-blue-700 via-blue-600 to-cyan-500 bg-clip-text text-transparent opacity-80" /> </div>  </div>
+</div>
+        </div>
+        
+      </section>
 
-          {/* SLIDE 4 - HealthPlus is just for you! */}
+      {/* ================= HEALTHPLUS STATEMENT (NEW SEPARATE SECTION) ================= */}
+<section className="min-h-screen flex items-center justify-center bg-white relative overflow-hidden">
+  
+  <div className="absolute inset-0 bg-blue-50/50"></div>
+
+
+
+  <div className="relative z-10 text-center px-6">
+    
 <div className="min-w-[100vw] h-full flex items-center justify-center relative overflow-hidden">
   
   {/* The Particle Effect Component */}
@@ -574,50 +682,78 @@ export default function HomePage() {
     {/* Floating Blue Emojis/Icons */}
     
     <div className="absolute -bottom-20 -right-20  transition-all">
-      <HeartHandshake className="w-16 h-16 text-blue-300 opacity-50" />
+      <HeartHandshake className="w-16 h-16 bg-gradient-to-br from-blue-700 via-blue-600 to-cyan-500 bg-clip-text text-transparent opacity-50" />
     </div>
 
-    <WordSplitText delay={0.3}>
-      <h2 className="text-7xl sm:text-8xl font-black  text-slate-900">
-        <span className="text-blue-600 drop-shadow-sm">HealthPlus</span> 
-        <br /> 
-        is <span className="relative">
-          just
-          <svg className="absolute -bottom-2 left-0 w-full h-3 text-blue-700" viewBox="0 0 100 10" preserveAspectRatio="none">
-            <path d="M0 5 Q 25 0 50 5 T 100 5" fill="none" stroke="currentColor" strokeWidth="4" />
-          </svg>
-        </span> 
-        <br />
-        for you!
-      </h2>
-    </WordSplitText>
+    
     
    
   </div>
 </div>
-        </div>
-      </section>
-
-
-
-
-      {/* ================= SERVICES (HORIZONTAL SCROLL & STICKY TITLE) ================= */}
-      <section
-        id="services"
-        ref={servicesSectionRef}
-        className="h-screen overflow-hidden relative"
-      >
-        {/* Sticky Title (Trendy effect) */}
-        <div ref={servicesTitleRef} className="sticky top-0 z-20 h-24 flex items-center justify-center bg-white/95 ">
-            <h3 className="text-4xl lg:text-5xl font-black text-slate-900 mb-4 mt-6 tracking-tighter">
-                Our Core <span className="text-blue-600">Services</span> 
-            </h3>
-        </div>
-
-        <div ref={servicesTrackRef} className="flex h-[calc(100vh-6rem)] bg-[#bbddfa] w-fit">
-
+    <WordSplitText>
+      <h2 className="text-5xl sm:text-7xl font-black text-slate-900 leading-tight">
+        <span className="text-blue-600">HealthPlus </span>
+        
+         is just for you!
           
+        
+      </h2>
+      {/* ================= CAUSE → EFFECT FLOW ================= */}
+<div className="mt-20 max-w-3xl mx-auto flex flex-col items-center gap-10">
 
+  <div className="text-center">
+    <p className="text-xl font-semibold text-slate-500">
+      Tracking alone
+    </p>
+    <p className="text-3xl font-black text-slate-900">
+      feels inconsistent
+    </p>
+  </div>
+
+  <div className="h-10 w-[2px] bg-blue-300 rounded-full"></div>
+
+  <div className="text-center">
+    <p className="text-xl font-semibold text-slate-500">
+      Tracking together
+    </p>
+    <p className="text-3xl font-black text-blue-600">
+      builds accountability
+    </p>
+  </div>
+
+  <div className="h-10 w-[2px] bg-blue-300 rounded-full"></div>
+
+  <div className="text-center">
+    <p className="text-xl font-semibold text-slate-500">
+      Shared accountability
+    </p>
+    <p className="text-3xl font-black mb-6 text-slate-900">
+      creates lasting habits
+    </p>
+  </div>
+
+</div>
+
+
+    </WordSplitText>
+  </div>
+</section>
+
+
+
+
+
+      
+
+
+ <section id="services" className="py-28 bg-white">
+        <div className="max-w-7xl mx-auto px-6">
+          <h2 className="text-4xl md:text-6xl font-black text-center mb-16">
+            Everything you need to <span className="bg-gradient-to-br from-blue-700 via-blue-500 to-cyan-500 bg-clip-text text-transparent">stay healthy</span>
+          </h2>
+
+          <div className="grid md:grid-cols-3 gap-10">
+            
           <ServiceCard icon={Utensils} title="Nutrition Scanner">
             Instantly analyze nutrition and make smarter food choices with our sophisticated AI-powered meal scanner.
           </ServiceCard>
@@ -641,14 +777,15 @@ export default function HomePage() {
           <ServiceCard icon={BarChart3} title="Progress Analysis">
             Visualize shared and individual progress through clean, actionable charts and reports to maintain motivation.
           </ServiceCard>
-
+          </div>
         </div>
       </section>
+      
 
 
 
 {/* EFFICIENCY SECTION */}
-      <section ref={efficiencySectionRef} className="py-24 min-h-screen bg-white px-6">
+      <section ref={efficiencySectionRef} className="py-24 min-h-screen bg-blue-50/80 px-6">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-12">
           <div className="flex-1">
             <h2 className="text-4xl md:text-7xl font-black tracking-tighter">Increase your <br/><span className="text-blue-600">efficiency</span> and productivity.</h2>
@@ -664,10 +801,59 @@ export default function HomePage() {
 
 
 
+
+{/* ================= JOURNEY (NEW) ================= */}
+<section className="py-28 ">
+  <div className="max-w-6xl text-center items-center justify-center  mx-auto px-6 ">
+
+    <h2 className="text-4xl lg:text-6xl font-black text-center mb-16">
+      Your Wellness <span className="text-blue-600">Journey</span>
+    </h2>
+
+    <div className="grid md:grid-cols-3 gap-10">
+
+      <div className="p-8 rounded-3xl bg-white shadow-xl hover:scale-105 border  hover:border-blue">
+        <h3 className="text-xl font-bold mb-3">Start Tracking</h3>
+        <p className="text-slate-600">
+          Log meals, sleep, hydration, and daily habits effortlessly.
+        </p>
+      </div>
+
+      <div className="p-8 rounded-3xl bg-white shadow-xl hover:scale-105 border hover:border-blue">
+        <h3 className="text-xl font-bold mb-3">Share Progress</h3>
+        <p className="text-slate-600">
+          Stay accountable with family, trainers, or partners.
+        </p>
+      </div>
+
+      <div className="p-8 rounded-3xl bg-white shadow-xl hover:scale-105 border hover:border-blue">
+        <h3 className="text-xl font-bold mb-3">Improve Together</h3>
+        <p className="text-slate-600">
+          Analyze patterns and grow healthier as a team.
+        </p>
+      </div>
+
+    </div><br></br><br></br>
+    <div className="flex justify-center">
+  <div className="max-w-4xl rounded-2xl shadow-lg bg-blue-600 px-8 py-4">
+    <p className="text-center text-lg font-bold text-white">
+      Secure    •    Private    •    No spam    •    No ads
+    </p>
+  </div>
+</div>
+
+
+  </div>
+</section>
+
+
+
+
+
       {/* ================= CONTACT ================= */}
       <section
         id="contact"
-        className="py-24 bg-gradient-to-t from-white to-blue-100/70 text-center"
+        className="py-24 bg-gradient-to-b from-white to-teal-500/10 text-center"
       >
         <div className="max-w-4xl mx-auto px-6">
           <h2 className="text-4xl font-extrabold text-slate-900 mb-4">
@@ -712,9 +898,6 @@ export default function HomePage() {
   );
 }
 
-/* ================= COMPONENTS (Refined) ================= */
-
-// --- Component for Horizontal Scroll Slides (Box Removed) ---
 function Slide({
   children,
 }: {
@@ -733,24 +916,16 @@ function Slide({
 }
 
 // --- Component for Professional Service Cards (Unchanged) ---
-function ServiceCard({
-  icon: Icon,
-  title,
-  children,
-}: {
-  icon: React.ElementType;
-  title: string;
-  children: React.ReactNode;
-}) {
+function ServiceCard({ icon: Icon, title, children }) {
   return (
-    <div className="min-w-[50vw] h-full flex items-center justify-center bg-white p-4"> 
-      <div className="bg-white p-10 rounded-3xl shadow-2xl max-w-lg text-center w-full h-[60vh] transform transition duration-500 hover:scale-[1.05] border border-slate-100 hover:border-blue-500/80 hover:bg-blue-100/30 cursor-default flex flex-col justify-center items-center">
-        <div className="text-white mb-6 p-5 rounded-full inline-block bg-blue-500 shadow-inner">
-          <Icon className="w-10 h-10"/>
-        </div>
-        <h3 className="text-3xl font-bold mb-4 text-blue-800 tracking-tight">{title}</h3>
-        <p className="text-lg text-slate-600 leading-relaxed max-w-sm">{children}</p>
+    <div className="group p-10 rounded-3xl bg-white border border-white hover:scale-105 hover:border-blue shadow-xl transition">
+  <div className="mb-6 w-14 h-14 flex items-center justify-center rounded-full 
+                  bg-blue-100 text-blue-600 
+                  group-hover:scale-110 transition">
+   <Icon />
       </div>
+      <h3 className="text-xl font-bold mb-3">{title}</h3>
+      <p className="text-slate-600">{children}</p>
     </div>
   );
 }
