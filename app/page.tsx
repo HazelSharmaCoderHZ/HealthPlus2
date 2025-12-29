@@ -231,25 +231,27 @@ if (statsRef.current) {
       if (statsAnimatedRef.current) return;
       statsAnimatedRef.current = true;
 
-      const numbers = statsRef.current!.querySelectorAll("[data-value]");
+      const numbers =
+  statsRef.current!.querySelectorAll<HTMLElement>("[data-value]");
 
-      numbers.forEach((el) => {
-        const target = Number(el.getAttribute("data-value"));
+numbers.forEach((el) => {
+  const target = Number(el.dataset.value);
 
-        gsap.fromTo(
-          el,
-          { innerText: 0 },
-          {
-            innerText: target,
-            duration: 2,
-            ease: "power2.out",
-            snap: { innerText: 1 },
-            onUpdate: function () {
-              el.innerText = Math.floor(Number(el.innerText)).toLocaleString();
-            },
-          }
-        );
-      });
+  gsap.fromTo(
+    el,
+    { innerText: 0 },
+    {
+      innerText: target,
+      duration: 2,
+      ease: "power2.out",
+      snap: { innerText: 1 },
+      onUpdate: () => {
+        el.innerText = Math.floor(Number(el.innerText)).toLocaleString();
+      },
+    }
+  );
+});
+
     },
   });
 }
