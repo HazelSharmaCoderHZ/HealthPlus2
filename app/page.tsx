@@ -171,7 +171,7 @@ function SplashScreen({ onFinish }) {
   return (
     <div
       ref={splashRef}
-      className="fixed inset-0 z-[9999] bg-gradient-to-br from-blue-600 via-blue-400 to-emerald-400
+      className="fixed inset-0 z-[9999] bg-gradient-to-br from-blue-700 via-blue-500 to-blue-700
  flex items-center justify-center"
     >
       <div className="absolute w-[500px] h-[500px] bg-white/10 rounded-full blur-[140px]" />
@@ -417,18 +417,18 @@ ScrollTrigger.refresh();
 {showSplash && <SplashScreen onFinish={() => setShowSplash(false)} />}
 
       {/* ================= NAVBAR ================= */}
-      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-sm border-b border-blue-100/70 shadow-md">
+      <header className="sticky top-0 z-50 bg-blue-600 backdrop-blur-sm border-b border-blue-100/70 shadow-md">
         <nav className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <Link href="/" className="font-bold text-blue-700 text-xl tracking-tight transition duration-300 hover:text-blue-800">
+          <Link href="/" className="font-bold text-white text-xl tracking-tight transition duration-300 hover:text-slate-300">
             <HeartHandshake className="inline w-8 h-8 mr-2"/> HealthPlus
           </Link>
-          <div className="hidden sm:flex gap-8 text-base font-semibold text-slate-700">
-            <a href="#about" className="hover:text-blue-700 transition duration-200">About</a>
-            <a href="#services" className="hover:text-blue-700 transition duration-200">Services</a>
-            <a href="#contact" className="hover:text-blue-700 transition duration-200">Contact</a>
+          <div className="hidden sm:flex gap-8 text-base font-semibold text-white">
+            <a href="#about" className="hover:text-white hover:text-slate-300 transition duration-200">About</a>
+            <a href="#services" className="hover:text-white transition duration-200 hover:text-slate-300">Services</a>
+            <a href="#contact" className="hover:text-white transition duration-200 hover:text-slate-300">Contact</a>
           </div>
           <Link href="/auth/signup">
-            <button className="px-4 py-2 rounded-full bg-blue-600 text-white font-black text-lg shadow-2xl transition duration-500 hover:bg-blue-700 hover:shadow-3xl transform hover:scale-[1.08]">
+            <button className="px-4 py-2 rounded-full text-white font-black text-lg  transition duration-500  hover:shadow-3xl transform hover:scale-[1.08]">
               Login
             </button>
           </Link>
@@ -437,31 +437,51 @@ ScrollTrigger.refresh();
       </header>
 
       {/* ================= HERO (Aesthetic) ================= */}
-      <main className="min-h-screen flex items-center justify-center bg-[radial-gradient(circle_at_center,#ffffff_0%,##deebfc_70%)] relative overflow-hidden">
-        {/* Decorative background elements */}
-        <div className="absolute top-1/4 left-1/4 h-72 w-72 bg-blue-200/40 rounded-full blur-[120px] animate-pulse-slow"></div>
-        <div className="absolute bottom-1/4 right-1/4 h-96 w-96 bg-blue-300/30 rounded-full blur-[150px] animate-pulse-slow delay-1000"></div>
+      <main className="min-h-screen bg-[radial-gradient(circle_at_center,#ffffff_0%,#deebfc_70%)] relative overflow-hidden">
+  {/* Decorative background elements */}
+  <div className="absolute top-1/4 left-1/4 h-72 w-72 bg-blue-200/40 rounded-full blur-[120px] animate-pulse-slow"></div>
+  <div className="absolute bottom-1/4 right-1/4 h-96 w-96 bg-blue-300/30 rounded-full blur-[150px] animate-pulse-slow delay-1000"></div>
 
-        {/* Centered Hero Content */}
-        <div className="hero-text-content text-center max-w-5xl px-6 relative z-10 flex flex-col items-center justify-center ">
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black leading-tight tracking-tighter text-slate-900">
-            <span ref={typeTargetRef}> </span>
-            <span ref={cursorRef} className="text-blue-600 ml-1">|</span>
-           <br></br>
-            <span className=" bg-gradient-to-br from-blue-700 via-blue-600 to-cyan-500 bg-clip-text text-transparent
-  ">Together.</span>
-          </h1>
-          <p className="mt-6 text-2xl text-slate-600 max-w-3xl font-light">
-            Shared progress, Achieve goals faster & together.
-          </p>
+  {/* Main Layout */}
+  <div className="relative z-10 min-h-screen max-w-7xl mx-auto px-8 flex items-center justify-between gap-16">
+    
+    {/* LEFT: Hero Text */}
+    <div className="flex-1 flex flex-col justify-center text-left">
+      <h1 className="text-5xl sm:text-7xl lg:text-7xl font-black leading-tight tracking-tighter text-slate-900">
+        <span ref={typeTargetRef}></span>
+        <span ref={cursorRef} className="text-blue-600 ml-1">|</span>
+        <br />
+        <span className="bg-gradient-to-br from-blue-700 via-blue-600 to-cyan-500 bg-clip-text text-transparent">
+          Together.
+        </span>
+      </h1>
 
-          <Link href="/auth/login">
-            <button className="mt-12 px-5 py-2 rounded-full bg-blue-600 text-white font-black text-lg shadow-2xl transition duration-500 hover:bg-blue-700 hover:shadow-3xl transform hover:scale-[1.08]">
-              Get Started <ArrowRight className="inline ml-3 w-6 h-6" />
-            </button>
-          </Link>
-        </div>
-      </main>
+      <p className="mt-6 text-2xl text-slate-600 max-w-2xl font-light">
+        Shared progress, Achieve goals faster & together.
+      </p>
+
+      <Link href="/auth/login">
+        <button className="mt-12 w-fit px-6 py-3 rounded-full bg-blue-600 text-white font-black text-lg shadow-2xl transition duration-500 hover:bg-blue-700 hover:shadow-3xl transform hover:scale-[1.08]">
+          Get Started <ArrowRight className="inline ml-3 w-6 h-6" />
+        </button>
+      </Link>
+    </div>
+
+    {/* RIGHT: DNA Animation */}
+    <div className="flex-1 flex items-center justify-center">
+      <div className="dna">
+        {Array.from({ length: 15 }).map((_, i) => (
+          <div className="link" key={i}>
+            <div></div>
+            <div></div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+  </div>
+</main>
+
 {/* ================= TRUST STATS ================= */}
 <section className="py-28 bg-white">
   <div className="max-w-5xl mx-auto px-6">
@@ -574,9 +594,9 @@ ScrollTrigger.refresh();
         <Slide>
   <WordSplitText>
     <h1 className="text-6xl sm:text-7xl font-bold leading-tight tracking-tighter text-slate-900 text-center">
-      Your <strong className="text-blue-500">Wellness Journey</strong>,
+      Your <strong className="text-blue-600">Wellness Journey</strong>,
       <br />
-      better when <strong className="text-blue-500">Shared</strong>.
+      better when <strong className="text-blue-600">Shared</strong>.
     </h1>
 
     {/* SVG Wrapper */}
@@ -644,22 +664,20 @@ ScrollTrigger.refresh();
           {/* SLIDE 2 - Family/Trainer (With Image) */}
           <Slide>
             <WordSplitText delay={0.1}>
-              <h1 className="text-6xl sm:text-6xl font-semibold  mb-5 text-slate-900">
+              <h1 className="text-6xl sm:text-6xl font-bold  mb-5 text-slate-900">
                 Whether you are a <span className="text-blue-600">family</span> or a <span className="text-blue-600">gym trainer</span>
               </h1>
             </WordSplitText>
-            <AboutImage alt="A family and a personal trainer tracking shared health goals"  src="/images/trainer.png"  />
-          </Slide>
+            </Slide>
 
           {/* SLIDE 3 - Long Distance Couple (With Image) */}
           <Slide>
             <WordSplitText delay={0.2}>
-              <h1 className="text-6xl sm:text-6xl  tracking-tighter mb-4 font-semibold  text-slate-900">
-                or a <span className="text-blue-600">long-distance couple</span> or a fitness freak <span className="text-blue-600">without a partner</span> ?
+              <h1 className="text-6xl sm:text-6xl  tracking-tighter mb-4 font-bold  text-slate-900">
+                or a <span className="text-blue-600">long-distance couple</span> or a fitness freak <span className="text-blue-600">without a partner</span>?
               </h1>
             </WordSplitText>
-            <AboutImage alt="A long-distance couple sharing fitness data and statistics" src="images/couple.png" />
-          </Slide>
+           </Slide>
 <div className="min-w-[100vw] h-full flex items-center justify-center relative overflow-hidden"> {/* The Particle Effect Component */} <ParticleExplosion triggerRef={aboutSectionRef} /> <div className="text-center z-10 relative"> {/* Floating Blue Emojis/Icons */} <div className="absolute -bottom-20 -right-20 transition-all"> <HeartHandshake className="w-16 h-16 bg-gradient-to-br from-blue-700 via-blue-600 to-cyan-500 bg-clip-text text-transparent opacity-80" /> </div>  </div>
 </div>
         </div>
@@ -691,53 +709,12 @@ ScrollTrigger.refresh();
     
    
   </div>
+</div><div className="glitch-container">
+  Healthplus is just for <br></br>you
+  
 </div>
-    <WordSplitText>
-      <h2 className="text-5xl sm:text-7xl font-black text-slate-900 leading-tight">
-        <span className="text-blue-600">HealthPlus </span>
-        
-         is just for you!
-          
-        
-      </h2>
-      {/* ================= CAUSE → EFFECT FLOW ================= */}
-<div className="mt-20 max-w-3xl mx-auto flex flex-col items-center gap-10">
+      
 
-  <div className="text-center">
-    <p className="text-xl font-semibold text-slate-500">
-      Tracking alone
-    </p>
-    <p className="text-3xl font-black text-slate-900">
-      feels inconsistent
-    </p>
-  </div>
-
-  <div className="h-10 w-[2px] bg-blue-300 rounded-full"></div>
-
-  <div className="text-center">
-    <p className="text-xl font-semibold text-slate-500">
-      Tracking together
-    </p>
-    <p className="text-3xl font-black text-blue-600">
-      builds accountability
-    </p>
-  </div>
-
-  <div className="h-10 w-[2px] bg-blue-300 rounded-full"></div>
-
-  <div className="text-center">
-    <p className="text-xl font-semibold text-slate-500">
-      Shared accountability
-    </p>
-    <p className="text-3xl font-black mb-6 text-slate-900">
-      creates lasting habits
-    </p>
-  </div>
-
-</div>
-
-
-    </WordSplitText>
   </div>
 </section>
 
@@ -787,15 +764,24 @@ ScrollTrigger.refresh();
 
 
 {/* EFFICIENCY SECTION */}
-      <section ref={efficiencySectionRef} className="py-24 min-h-screen bg-blue-50/80 px-6">
+      <section ref={efficiencySectionRef} className="py-24 min-h-screen bg-blue-50/80  px-6">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-12">
           <div className="flex-1">
             <h2 className="text-4xl md:text-7xl font-black tracking-tighter">Increase your <br/><span className="text-blue-600">efficiency</span> and productivity.</h2>
             <p className="mt-6 text-xl text-slate-500">Shared goals lead to 40% higher completion rates.</p>
           </div>
           <div className="flex-1 w-full min-h-[300px]">
-            <svg viewBox="0 0 500 300" className="w-full drop-shadow-2xl">
-              <path ref={chartPathRef} d="M10,280 L100,240 L200,260 L300,120 L400,140 L490,20" fill="none" stroke="#2563eb" strokeWidth="8" strokeLinecap="round" />
+            <svg viewBox="0 0 500 300" className="w-full drop-shadow-2xl " >
+              <defs>
+    <filter id="blueGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+              <path ref={chartPathRef} d="M10,280 L100,240 L200,260 L300,120 L400,140 L490,20" fill="none" stroke="#2563eb" strokeWidth="8" filter="url(#blueGlow)" strokeLinecap="round" />
             </svg>
           </div>
         </div>
@@ -814,21 +800,21 @@ ScrollTrigger.refresh();
 
     <div className="grid md:grid-cols-3 gap-10">
 
-      <div className="p-8 rounded-3xl bg-white shadow-xl hover:scale-105 border  hover:border-blue">
+      <div className="p-8 rounded-3xl border border-blue-500 bg-white shadow-xl hover:scale-105 border  hover:border-blue">
         <h3 className="text-xl font-bold mb-3">Start Tracking</h3>
         <p className="text-slate-600">
           Log meals, sleep, hydration, and daily habits effortlessly.
         </p>
       </div>
 
-      <div className="p-8 rounded-3xl bg-white shadow-xl hover:scale-105 border hover:border-blue">
+      <div className="p-8 rounded-3xl bg-white border border-blue-500  shadow-xl hover:scale-105 border hover:border-blue">
         <h3 className="text-xl font-bold mb-3">Share Progress</h3>
         <p className="text-slate-600">
           Stay accountable with family, trainers, or partners.
         </p>
       </div>
 
-      <div className="p-8 rounded-3xl bg-white shadow-xl hover:scale-105 border hover:border-blue">
+      <div className="p-8 rounded-3xl bg-white border border-blue-500  shadow-xl hover:scale-105 border hover:border-blue">
         <h3 className="text-xl font-bold mb-3">Improve Together</h3>
         <p className="text-slate-600">
           Analyze patterns and grow healthier as a team.
@@ -855,20 +841,20 @@ ScrollTrigger.refresh();
       {/* ================= CONTACT ================= */}
       <section
         id="contact"
-        className="py-24 bg-gradient-to-b from-white to-teal-500/10 text-center"
+        className="py-20 bg-blue-600 text-center"
       >
         <div className="max-w-4xl mx-auto px-6">
-          <h2 className="text-4xl font-extrabold text-slate-900 mb-4">
+          <h2 className="text-4xl font-extrabold text-white mb-4">
             Connect with HealthPlus
           </h2>
-          <p className="text-xl text-slate-600 mb-10">
+          <p className="text-xl text-slate-100 mb-8">
             Ready to integrate shared wellness? Reach out to our team for demos, support, or partnership inquiries.
           </p>
 
           <div className="flex justify-center flex-wrap gap-6 text-lg font-semibold">
             <a 
               href="mailto:sharmahazel310@gmail.com"
-              className="px-8 py-3 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 transition duration-300 hover:bg-blue-100 hover:shadow-lg transform "
+              className="px-6 py-2 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 transition duration-300 hover:bg-blue-100 hover:shadow-lg transform "
             >
               📧 Email Us
             </a>
@@ -876,7 +862,7 @@ ScrollTrigger.refresh();
               href="https://github.com/HazelSharmaCoderHZ"
               target="_blank"
               rel="noopener noreferrer"
-              className="px-8 py-3 rounded-xl bg-slate-100 border border-slate-300 text-slate-700 transition duration-300 hover:bg-slate-200 hover:shadow-lg transform "
+              className="px-6 py-2 rounded-xl bg-slate-100 border border-slate-300 text-slate-700 transition duration-300 hover:bg-slate-200 hover:shadow-lg transform "
             >
               🖥 GitHub
             </a>
@@ -884,13 +870,13 @@ ScrollTrigger.refresh();
               href="https://www.linkedin.com/in/hazelsharma-it/"
               target="_blank"
               rel="noopener noreferrer"
-              className="px-8 py-3 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 transition duration-300 hover:bg-blue-100 hover:shadow-lg transform "
+              className="px-6 py-2 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 transition duration-300 hover:bg-blue-100 hover:shadow-lg transform "
             >
               ↗ LinkedIn Profile
             </a>
           </div>
 
-          <p className="mt-16 text-slate-500 text-sm">
+          <p className="mt-6 text-slate-100 text-sm">
             HealthPlus © 2025 | All Rights Reserved.
           </p>
         </div>
@@ -920,7 +906,7 @@ function Slide({
 // --- Component for Professional Service Cards (Unchanged) ---
 function ServiceCard({ icon: Icon, title, children }) {
   return (
-    <div className="group p-10 rounded-3xl bg-white border border-white hover:scale-105 hover:border-blue shadow-xl transition">
+    <div className="group p-10 rounded-3xl bg-white border border-blue-500 hover:scale-105 hover:border-blue-600 shadow shadow-xl shadow-blue-50 transition">
   <div className="mb-6 w-14 h-14 flex items-center justify-center rounded-full 
                   bg-blue-100 text-blue-600 
                   group-hover:scale-110 transition">
