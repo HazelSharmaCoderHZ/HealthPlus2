@@ -7,7 +7,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Flip } from "gsap/Flip";
 import { SplitText } from "gsap/SplitText";
 import { TextPlugin } from "gsap/TextPlugin";
-
+import HealthPlusSection from './HealthPlusSection';
 // Import icons
 import { Utensils, Calendar, ChefHat, Droplet, Moon, BarChart3, ArrowRight, X , CircleCheck,TrendingUp, HeartHandshake} from 'lucide-react';
  
@@ -15,6 +15,8 @@ import { Utensils, Calendar, ChefHat, Droplet, Moon, BarChart3, ArrowRight, X , 
 // Register all necessary plugins once globally
 gsap.registerPlugin(ScrollTrigger, Flip, SplitText, TextPlugin);
 // --- Component to handle text splitting and word/line animation (Enhanced Flip Effect) ---
+
+
 
 // --- New Component for the "Dear Diary" style effect ---
 const ParticleExplosion = ({ triggerRef }) => {
@@ -188,7 +190,7 @@ function SplashScreen({ onFinish }) {
 export default function HomePage() {
   const statsRef = useRef<HTMLDivElement | null>(null);
 const statsAnimatedRef = useRef(false);
-
+<HealthPlusSection />
   const mainRef = useRef(null);
   const [showSplash, setShowSplash] = useState(true);
 
@@ -588,135 +590,103 @@ ScrollTrigger.refresh();
         ref={aboutSectionRef}
         className="h-screen  overflow-hidden "
       >
-        <div ref={aboutTrackRef} className="flex h-screen w-fit">
-          
-          {/* SLIDE 1 */}
-        <Slide>
-  <WordSplitText>
-    <h1 className="text-6xl sm:text-7xl font-bold leading-tight tracking-tighter text-slate-900 text-center">
-      Your <strong className="text-blue-600">Wellness Journey</strong>,
-      <br />
-      better when <strong className="text-blue-600">Shared</strong>.
-    </h1>
-
-    {/* SVG Wrapper */}
-    <div className="flex items-center justify-center mt-1">
-      {/* SVG filter definition (hidden, but global) */}
-      <svg width="0" height="0">
-        <defs>
-          <filter
-            id="goo"
-            x="-100%"
-            y="-100%"
-            width="300%"
-            height="300%"
-            colorInterpolationFilters="sRGB"
-          >
-            <feGaussianBlur
-              in="SourceGraphic"
-              stdDeviation={8}
-              result="blur"
-            />
-            <feColorMatrix
-              in="blur"
-              mode="matrix"
-              result="cm"
-              values="
-                1 0 0 0 0
-                0 1 0 0 0
-                0 0 1 0 0
-                0 0 0 21 -7
-              "
-            />
-          </filter>
-        </defs>
-      </svg>
-
-      {/* Main SVG */}
-      <svg
-        width="360"
-        height="240"
-        viewBox="-140 -140 540 400"
-        overflow="visible"
-      >
-        <g filter="url(#goo)">
-          <circle
-            cx="170"
-            cy="100"
-            r="54"
-            fill="#275EFE"
-            className="circle"
-          />
-          <circle
-            cx="170"
-            cy="100"
-            r="54"
-            fill="#275EFE"
-            className="circle right"
-          />
-        </g>
-      </svg>
+       <div ref={aboutTrackRef} className="flex h-screen w-fit bg-white">
+  
+  {/* SLIDE 1: The Hook */}
+  <Slide>
+    <div className="relative">
+      <span className="absolute -top-20 -left-10 text-[20rem] font-black text-blue-50/70 select-none -z-10">01</span>
+      <WordSplitText>
+        <h1 className="text-7xl md:text-8xl font-black leading-[0.9] tracking-tighter text-slate-900">
+          Your <span className="text-blue-600">Wellness</span> <br />
+          is better when <br />
+          <span className="relative">
+            Shared.
+            <svg className="absolute -bottom-2 left-0 w-full h-4 text-blue-200" viewBox="0 0 100 10" preserveAspectRatio="none">
+              <path d="M0 5 Q 25 0 50 5 T 100 5" stroke="currentColor" strokeWidth="4" fill="transparent" />
+            </svg>
+          </span>
+        </h1>
+      </WordSplitText>
     </div>
-  </WordSplitText>
-</Slide>
+  </Slide>
 
-
-          {/* SLIDE 2 - Family/Trainer (With Image) */}
-          <Slide>
-            <WordSplitText delay={0.1}>
-              <h1 className="text-6xl sm:text-6xl font-bold  mb-5 text-slate-900">
-                Whether you are a <span className="text-blue-600">family</span> or a <span className="text-blue-600">gym trainer</span>
-              </h1>
-            </WordSplitText>
-            </Slide>
-
-          {/* SLIDE 3 - Long Distance Couple (With Image) */}
-          <Slide>
-            <WordSplitText delay={0.2}>
-              <h1 className="text-6xl sm:text-6xl  tracking-tighter mb-4 font-bold  text-slate-900">
-                or a <span className="text-blue-600">long-distance couple</span> or a fitness freak <span className="text-blue-600">without a partner</span>?
-              </h1>
-            </WordSplitText>
-           </Slide>
-<div className="min-w-[100vw] h-full flex items-center justify-center relative overflow-hidden"> {/* The Particle Effect Component */} <ParticleExplosion triggerRef={aboutSectionRef} /> <div className="text-center z-10 relative"> {/* Floating Blue Emojis/Icons */} <div className="absolute -bottom-20 -right-20 transition-all"> <HeartHandshake className="w-16 h-16 bg-gradient-to-br from-blue-700 via-blue-600 to-cyan-500 bg-clip-text text-transparent opacity-80" /> </div>  </div>
-</div>
+  {/* SLIDE 2: The Audience (Family/Trainer) */}
+  <Slide>
+    <div className="grid grid-cols-2 gap-10 items-center">
+      <WordSplitText>
+        <h2 className="text-6xl font-bold text-slate-900 leading-tight">
+          A system for <br />
+          <span className="text-blue-600 italic">families</span> & <br />
+          <span className="text-blue-600">gym trainers.</span>
+        </h2>
+      </WordSplitText>
+      
+      {/* Aesthetic Card Visual */}
+      <div className="relative group">
+        <div className="absolute inset-0 bg-blue-600 rounded-[3rem] rotate-3 scale-95 opacity-10 group-hover:rotate-6 border border-blue-600 shadow shadow-xl shadow-blue-300 transition-transform" />
+        <div className="relative bg-white border border-slate-100 p-10 rounded-[3rem] shadow-2xl">
+          <div className="flex gap-4 mb-6">
+            <div className="w-12 h-12 rounded-full bg-blue-100" />
+            <div className="w-12 h-12 rounded-full bg-blue-200" />
+            <div className="w-12 h-12 rounded-full bg-blue-600" />
+          </div>
+          <p className="text-slate-400 font-medium tracking-widest uppercase text-xs">Syncing Live</p>
+          <div className="h-2 w-full bg-slate-100 rounded-full mt-4 overflow-hidden">
+            <div className="h-full bg-blue-600 w-2/3" />
+          </div>
         </div>
+      </div>
+    </div>
+  </Slide>
+
+  {/* SLIDE 3: Long Distance & Solo */}
+  <Slide>
+    <div className="text-center">
+      <WordSplitText>
+        <h2 className="text-6xl font-bold text-slate-900 mb-12">
+          From <span className="underline decoration-blue-200 underline-offset-8">Long Distance</span> <br />
+          to the <span className="text-blue-600 underline decoration-blue-200 underline-offset-8">Solo Warrior.</span>
+        </h2>
+      </WordSplitText>
+      
+      {/* Unique Floating Icons Layout */}
+      <div className="flex justify-center gap-20 mt-10">
+        <div className="animate-bounce-slow flex flex-col items-center">
+           <div className="w-20 h-20 bg-white shadow-xl rounded-2xl flex items-center justify-center text-3xl">✈️</div>
+           <p className="mt-4 font-bold text-slate-400">Connected</p>
+        </div>
+        <div className="animate-bounce-slow [animation-delay:0.5s] flex flex-col items-center">
+           <div className="w-20 h-20 bg-white shadow-xl rounded-2xl flex items-center justify-center text-3xl">💪</div>
+           <p className="mt-4 font-bold text-slate-400">Accountable</p>
+        </div>
+      </div>
+    </div>
+  </Slide>
+
+  {/* SLIDE 4: The Finale (Particles) */}
+  <div className="min-w-[100vw] h-full flex items-center justify-center relative overflow-hidden bg-blue-600"> 
+    <ParticleExplosion triggerRef={aboutSectionRef} /> 
+    
+    <div className="text-center z-10 relative"> 
+       <div className="bg-white/10 backdrop-blur-2xl p-20 rounded-full border border-white/20">
+          <HeartHandshake className="w-32 h-32 text-white drop-shadow-[0_0_30px_rgba(255,255,255,0.5)]" />
+          <h2 className="text-white text-4xl font-black mt-8 uppercase tracking-tighter">You're Not Alone.</h2>
+       </div>
+    </div>
+  </div>
+
+  <div className="min-w-[50vw] h-full flex items-center justify-center relative overflow-hidden bg-blue-600"> 
+    <ParticleExplosion triggerRef={aboutSectionRef} /> 
+    
+    
+  </div>
+
+</div>
         
       </section>
 
-      {/* ================= HEALTHPLUS STATEMENT (NEW SEPARATE SECTION) ================= */}
-<section className="min-h-screen flex items-center justify-center bg-white relative overflow-hidden">
-  
-  <div className="absolute inset-0 bg-blue-50/50"></div>
-
-
-
-  <div className="relative z-10 text-center px-6">
-    
-<div className="min-w-[100vw] h-full flex items-center justify-center relative overflow-hidden">
-  
-  {/* The Particle Effect Component */}
-  <ParticleExplosion triggerRef={aboutSectionRef} />
-
-  <div className="text-center z-10 relative">
-    {/* Floating Blue Emojis/Icons */}
-    
-    <div className="absolute -bottom-20 -right-20  transition-all">
-      <HeartHandshake className="w-16 h-16 bg-gradient-to-br from-blue-700 via-blue-600 to-cyan-500 bg-clip-text text-transparent opacity-50" />
-    </div>
-
-    
-    
-   
-  </div>
-</div><div className="glitch-container">
-  Healthplus is just for <br></br>you
-  
-</div>
-      
-
-  </div>
-</section>
+    <HealthPlusSection />
 
 
 
@@ -886,18 +856,13 @@ ScrollTrigger.refresh();
   );
 }
 
-function Slide({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function Slide({ children, className = "" }) {
   return (
-    <div className={`min-w-[100vw] h-full flex items-center justify-center px-16 bg-white/70 backdrop-blur-sm`}>
-      {/* Removed the box styling: max-w-4xl text-center p-12 bg-white/60 rounded-3xl shadow-2xl border-4 border-blue-200/50 */}
-      <div className="max-w-4xl text-center p-4"> 
-        <div className="text-xl text-slate-700 leading-relaxed space-y-4">
-          {children}
-        </div>
+    <div className={`min-w-[100vw] h-full flex items-center justify-center px-20 relative overflow-hidden ${className}`}>
+      {/* Soft background glow for each slide */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-50/50 rounded-full blur-[120px] -z-10" />
+      <div className="max-w-6xl w-full">
+        {children}
       </div>
     </div>
   );
