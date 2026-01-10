@@ -50,11 +50,11 @@ export default function SignupPage() {
   };
 
   return (
-    <main className="min-h-screen flex flex-col bg-white md:flex-row overflow-hidden">
-      {/* LEFT: Side Illustration (Same as Login/Verify) */}
+    <main className="min-h-screen flex flex-col bg-blue-500 md:flex-row overflow-hidden">
+      
       <aside
         aria-hidden="true"
-        className="hidden md:block md:w-1/2 relative overflow-hidden"
+        className="hidden md:block md:w-1/2 bg-blue-500 relative overflow-hidden"
         style={{
           backgroundImage: "url('/images/sign.png')",
           backgroundSize: "cover",
@@ -68,18 +68,18 @@ export default function SignupPage() {
         >
           <path
             d="M0,0 C80,150 80,650 200,800 L200,0 Z"
-            fill="rgba(255,255,255,0.06)"
+            fill="rgba(255, 255, 255, 0.06)"
           />
         </svg>
       </aside>
 
       {/* RIGHT: Signup Card */}
-      <section className="w-full md:w-1/2 flex items-center justify-center px-6 py-10 bg-gray-50 dark:bg-gray-950">
+      <section className="w-full md:w-1/2 flex items-center justify-center px-6 py-10  dark:bg-gray-950">
         <div className="max-w-md w-full p-8 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800/50 bg-white/95 dark:bg-gray-900/70 backdrop-blur-xl flex flex-col gap-6">
           
           <header className="w-full text-center">
             <h1 className="text-3xl font-bold mb-2">
-              Health<span className="text-indigo-600">Plus</span> 🍃
+              Health<span className="text-blue-600">Plus</span> 
             </h1>
             <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-300">
               New User? Create Account
@@ -139,7 +139,7 @@ export default function SignupPage() {
             type="button"
           >
             <img 
-              src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/smartlock/google.svg" 
+              src="https://img.icons8.com/?size=100&id=V5cGWnc9R4xj&format=png&color=000000" 
               alt="Google" 
               className="w-5 h-5" 
             />

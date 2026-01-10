@@ -72,12 +72,32 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen flex flex-col md:flex-row overflow-hidden">
-      
+    <main className="min-h-screen flex flex-col md:flex-row bg-slate-50 overflow-hidden">
+      <aside
+        aria-hidden="true"
+        className="hidden md:block md:w-1/2 relative overflow-hidden"
+        style={{
+          backgroundImage: "url('/images/log.png')", 
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
+        
+        <svg
+          className="absolute right-0 top-0 h-full w-40 translate-x-1/3"
+          viewBox="0 0 200 800"
+          preserveAspectRatio="none"
+        >
+          <path
+            d="M0,0 C80,150 80,650 200,800 L200,0 Z"
+            fill="rgba(255,255,255,0.06)"
+          />
+        </svg>
+      </aside>
 
       {/* RIGHT: Login Form Section */}
-      <section className="w-full md:w-1/2 flex items-center justify-center px-6 py-10 bg-gray-50 dark:bg-gray-950">
-        <div className="max-w-md w-full p-8 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800/50 bg-white/95 dark:bg-gray-900/70 backdrop-blur-xl flex flex-col gap-6">
+      <section className="w-full md:w-1/2 flex items-center justify-center px-6 py-10 dark:bg-gray-950">
+        <div className="max-w-md w-full p-8 rounded-2xl shadow-2xl border border-blue-500 dark:border-gray-800/50 bg-white/95 dark:bg-gray-900/70 backdrop-blur-xl flex flex-col gap-6">
           
           <header className="w-full text-center">
             <h1 className="text-3xl font-bold mb-2">
@@ -161,28 +181,8 @@ export default function LoginPage() {
         </div>
       </section>
 
-      {/* LEFT: Side Illustration / Image */}
-      <aside
-        aria-hidden="true"
-        className="hidden md:block md:w-1/2 relative overflow-hidden"
-        style={{
-          backgroundImage: "url('/images/log.png')", // You can change this to a login specific image if you have one
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      >
-        {/* Aesthetic SVG Overlay from your Verify page */}
-        <svg
-          className="absolute right-0 top-0 h-full w-40 translate-x-1/3"
-          viewBox="0 0 200 800"
-          preserveAspectRatio="none"
-        >
-          <path
-            d="M0,0 C80,150 80,650 200,800 L200,0 Z"
-            fill="rgba(255,255,255,0.06)"
-          />
-        </svg>
-      </aside>
+     
+      
     </main>
   );
 }

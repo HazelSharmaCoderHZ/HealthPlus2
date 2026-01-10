@@ -429,7 +429,7 @@ ScrollTrigger.refresh();
             <a href="#services" className="hover:text-white transition duration-200 hover:text-slate-300">Services</a>
             <a href="#contact" className="hover:text-white transition duration-200 hover:text-slate-300">Contact</a>
           </div>
-          <Link href="/auth/signup">
+          <Link href="/auth/login">
             <button className="px-4 py-2 rounded-full text-white font-black text-lg  transition duration-500  hover:shadow-3xl transform hover:scale-[1.08]">
               Login
             </button>
@@ -462,7 +462,7 @@ ScrollTrigger.refresh();
         Shared progress, Achieve goals faster & together.
       </p>
 
-      <Link href="/auth/login">
+      <Link href="/auth/signup">
         <button className="mt-12 w-fit px-6 py-3 rounded-full bg-blue-600 text-white font-black text-lg shadow-2xl transition duration-500 hover:bg-blue-700 hover:shadow-3xl transform hover:scale-[1.08]">
           Get Started <ArrowRight className="inline ml-3 w-6 h-6" />
         </button>
