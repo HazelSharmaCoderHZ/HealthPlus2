@@ -419,18 +419,18 @@ ScrollTrigger.refresh();
 {showSplash && <SplashScreen onFinish={() => setShowSplash(false)} />}
 
       {/* ================= NAVBAR ================= */}
-      <header className="sticky top-0 z-50 bg-blue-600 backdrop-blur-sm border-b border-blue-100/70 shadow-md">
+      <header className="sticky top-0 z-50 bg-[radial-gradient(circle_at_center,#ffffff_0%,#deebfc_70%)]   border-b border-blue-100/70 shadow-md">
         <nav className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <Link href="/" className="font-bold text-white text-xl tracking-tight transition duration-300 hover:text-slate-300">
-            <HeartHandshake className="inline w-8 h-8 mr-2"/> HealthPlus
+          <Link href="/" className="font-bold bg-gradient-to-br from-blue-700 via-blue-600 to-cyan-500 bg-clip-text text-transparent text-xl tracking-tight transition duration-300 hover:text-blue-700">
+            <HeartHandshake className="inline text-blue-600 w-8 h-8 mr-2"/> HealthPlus
           </Link>
-          <div className="hidden sm:flex gap-8 text-base font-semibold text-white">
-            <a href="#about" className="hover:text-white hover:text-slate-300 transition duration-200">About</a>
-            <a href="#services" className="hover:text-white transition duration-200 hover:text-slate-300">Services</a>
-            <a href="#contact" className="hover:text-white transition duration-200 hover:text-slate-300">Contact</a>
+          <div className="hidden sm:flex gap-8 text-base font-semibold bg-gradient-to-br from-blue-700 via-blue-600 to-cyan-500 bg-clip-text text-transparent">
+            <a href="#about" className="hover:text-blue-700 transition duration-200">About</a>
+            <a href="#services" className="transition duration-200 hover:text-blue-700">Services</a>
+            <a href="#contact" className=" transition duration-200 hover:text-blue-700">Contact</a>
           </div>
           <Link href="/auth/login">
-            <button className="px-4 py-2 rounded-full text-white font-black text-lg  transition duration-500  hover:shadow-3xl transform hover:scale-[1.08]">
+            <button className="px-4 py-2 rounded-full bg-gradient-to-br from-blue-700 via-blue-600 to-cyan-500 bg-clip-text text-transparent font-black text-lg hover:text-blue-700  transition duration-500  hover:shadow-3xl transform hover:scale-[1.08]">
               Login
             </button>
           </Link>
@@ -624,8 +624,8 @@ ScrollTrigger.refresh();
       
       {/* Aesthetic Card Visual */}
       <div className="relative group">
-        <div className="absolute inset-0 bg-blue-600 rounded-[3rem] rotate-3 scale-95 opacity-10 group-hover:rotate-6 border border-blue-600 shadow shadow-xl shadow-blue-300 transition-transform" />
-        <div className="relative bg-white border border-slate-100 p-10 rounded-[3rem] shadow-2xl">
+        <div className="absolute inset-0 bg-blue-700 rounded-[3rem] rotate-3 scale-100 opacity-40 group-hover:rotate-6 border border-blue-600 shadow shadow-3xl shadow-blue-600 transition-transform" />
+        <div className="relative bg-white shadow-xl  border border-slate-100 p-10 rounded-[3rem] shadow-2xl">
           <div className="flex gap-4 mb-6">
             <div className="w-12 h-12 rounded-full bg-blue-100" />
             <div className="w-12 h-12 rounded-full bg-blue-200" />
@@ -701,7 +701,7 @@ ScrollTrigger.refresh();
             Everything you need to <span className="bg-gradient-to-br from-blue-700 via-blue-500 to-cyan-500 bg-clip-text text-transparent">stay healthy</span>
           </h2>
 
-          <div className="grid md:grid-cols-3 gap-10">
+          <div className="grid md:grid-cols-3 mx-5 gap-10">
             
           <ServiceCard icon={Utensils} title="Nutrition Scanner">
             Instantly analyze nutrition and make smarter food choices with our sophisticated AI-powered meal scanner.
@@ -735,7 +735,7 @@ ScrollTrigger.refresh();
 
 {/* EFFICIENCY SECTION */}
       <section ref={efficiencySectionRef} className="py-24 min-h-screen bg-blue-50/80  px-6">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-12">
+        <div className="max-w-7xl mx-6 flex flex-col md:flex-row items-center gap-12">
           <div className="flex-1">
             <h2 className="text-4xl md:text-7xl font-black tracking-tighter">Increase your <br/><span className="text-blue-600">efficiency</span> and productivity.</h2>
             <p className="mt-6 text-xl text-slate-500">Shared goals lead to 40% higher completion rates.</p>

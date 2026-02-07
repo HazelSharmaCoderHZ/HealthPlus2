@@ -11,12 +11,12 @@ const HealthPlusSection = () => {
         <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-cyan-50/40 rounded-full blur-[100px]" />
       </div>
 
-      <div className="container mx-auto px-6 relative z-10">
+      <div className="container mx-5 px-6 relative z-10">
         <div className="flex flex-col lg:flex-row items-center gap-16">
           
           {/* Text Content */}
           <div className="flex-1 text-left">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 border border-blue-200 mb-8">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 border border-blue-200  mb-8">
               <Star className="w-4 h-4 text-blue-600 fill-blue-600" />
               <span className="text-xs font-bold text-blue-700 uppercase tracking-widest">Personalized Care</span>
             </div>
@@ -42,7 +42,7 @@ const HealthPlusSection = () => {
           </div>
 
           {/* Feature Card Side */}
-          <div className="flex-1 w-full max-w-md">
+          <div className="flex-1 w-full mr-8 max-w-md">
             <div className="bg-white p-8 rounded-[2.5rem] shadow-[0_20px_50px_rgba(37,99,235,0.1)] border border-blue-50">
               <div className="flex items-center justify-between mb-10">
                 <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
