@@ -1,79 +1,78 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/firebase";
-import { collection, getDocs, doc } from "firebase/firestore";
+import { promises as fs } from "fs";
+import path from "path";
 
-// optional: same helper as client, kept in case you need normalization
-function getLocalDateKey(dateStr) {
-  // we assume frontend already sends YYYY-MM-DD
-  return dateStr;
+function parseCSV(text) {
+  const lines = text.trim().split("\n");
+  const headers = lines[0].split(",").map((h) => h.trim());
+
+  return lines.slice(1).map((line) => {
+    const values = [];
+    let current = "";
+    let insideQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (char === '"') {
+        insideQuotes = !insideQuotes;
+      } else if (char === "," && !insideQuotes) {
+        values.push(current.trim());
+        current = "";
+      } else {
+        current += char;
+      }
+    }
+    values.push(current.trim());
+
+    const obj = {};
+    headers.forEach((h, i) => {
+      obj[h] = values[i] || "";
+    });
+    return obj;
+  });
 }
 
 export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
-    const uid = searchParams.get("uid");
-    const dateParam = searchParams.get("date");
+    const q = (searchParams.get("q") || "").toLowerCase().trim();
+    const cuisine = (searchParams.get("cuisine") || "").toLowerCase().trim();
+    const course = (searchParams.get("course") || "").toLowerCase().trim();
+    const diet = (searchParams.get("diet") || "").toLowerCase().trim();
 
-    if (!uid || !dateParam) {
-      return NextResponse.json(
-        { error: "Missing uid or date" },
-        { status: 400 }
-      );
-    }
+    const filePath = path.join(process.cwd(), "data", "recipes.csv");
+    const fileText = await fs.readFile(filePath, "utf-8");
+    const recipes = parseCSV(fileText);
 
-    if (!db) {
-      console.error("Firestore db is undefined in /api/nut");
-      return NextResponse.json(
-        { error: "Firestore not initialized" },
-        { status: 500 }
-      );
-    }
+    const filtered = recipes.filter((r) => {
+      const matchesQuery = q
+        ? r.name?.toLowerCase().includes(q) ||
+          r.description?.toLowerCase().includes(q) ||
+          r.ingredients_name?.toLowerCase().includes(q)
+        : true;
 
-    const dateKey = getLocalDateKey(dateParam);
+      const matchesCuisine = cuisine
+        ? r.cuisine?.toLowerCase().includes(cuisine)
+        : true;
 
-    // ✅ EXACT PATH: nutritionLogs/{uid}/{dateKey}/{logId}
-    const userDocRef = doc(db, "nutritionLogs", uid); // DocumentReference
-    const dayRef = collection(userDocRef, dateKey);   // ✅ collection(DocumentRef, subcollectionName)
+      const matchesCourse = course
+        ? r.course?.toLowerCase().includes(course)
+        : true;
 
-    const snapshot = await getDocs(dayRef);
+      const matchesDiet = diet
+        ? r.diet?.toLowerCase().includes(diet)
+        : true;
 
-    if (snapshot.empty) {
-      // calendar expects null when no entries
-      return NextResponse.json(null, { status: 200 });
-    }
-
-    const summary = {
-      calories: 0,
-      protein_g: 0,
-      carbohydrates_total_g: 0,
-      fat_total_g: 0,
-      sugar_g: 0,
-      cholesterol_mg: 0,
-      sodium_mg: 0,
-      potassium_mg: 0,
-    };
-
-    snapshot.forEach((docSnap) => {
-      const d = docSnap.data();
-
-      summary.calories += d.calories || 0;
-      summary.protein_g += d.protein_g || 0;
-      summary.carbohydrates_total_g += d.carbohydrates_total_g || 0;
-      summary.fat_total_g += d.fat_total_g || 0;
-      summary.sugar_g += d.sugar_g || 0;
-      summary.cholesterol_mg += d.cholesterol_mg || 0;
-      summary.sodium_mg += d.sodium_mg || 0;
-      summary.potassium_mg += d.potassium_mg || 0;
+      return matchesQuery && matchesCuisine && matchesCourse && matchesDiet;
     });
 
-    // round a bit for cleaner display
-    Object.keys(summary).forEach((k) => {
-      summary[k] = Number(summary[k].toFixed(2));
-    });
+    if (filtered.length === 0) {
+      return NextResponse.json([], { status: 200 });
+    }
 
-    return NextResponse.json(summary, { status: 200 });
+    return NextResponse.json(filtered, { status: 200 });
   } catch (err) {
-    console.error("API Error in /api/nut:", err);
+    console.error("API Error in /api/recipes:", err);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

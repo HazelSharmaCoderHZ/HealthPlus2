@@ -15,14 +15,76 @@ function toDateId(d) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
+// Animated water glass component
+function WaterGlass({ percent }) {
+  const safePercent = Math.min(100, Math.max(0, percent));
+  const fillHeight = (safePercent / 100) * 120;
+  const waterColor = safePercent >= 100 ? "#22d3ee" : "#3b82f6";
+  const waterLight = safePercent >= 100 ? "#67e8f9" : "#93c5fd";
+
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <svg width="80" height="140" viewBox="0 0 80 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+        {/* Glass body */}
+        <path d="M10 10 L6 130 Q6 134 10 134 L70 134 Q74 134 74 130 L70 10 Z"
+          fill="rgba(219,234,254,0.3)" stroke="#bfdbfe" strokeWidth="2" />
+
+        {/* Water fill - clipped */}
+        <clipPath id="glassClip">
+          <path d="M10 10 L6 130 Q6 134 10 134 L70 134 Q74 134 74 130 L70 10 Z" />
+        </clipPath>
+        <g clipPath="url(#glassClip)">
+          {/* Water body */}
+          <rect
+            x="6" y={134 - fillHeight} width="68" height={fillHeight}
+            fill={waterColor}
+            style={{ transition: "all 0.6s cubic-bezier(0.4,0,0.2,1)" }}
+          />
+          {/* Wave on top of water */}
+          {safePercent > 2 && (
+            <g style={{ transition: "transform 0.6s cubic-bezier(0.4,0,0.2,1)", transform: `translateY(${134 - fillHeight}px)` }}>
+              <path
+                d={`M6 8 Q20 2 34 8 Q48 14 62 8 Q68 5 74 8 L74 16 L6 16 Z`}
+                fill={waterLight}
+                opacity="0.7"
+              >
+                <animateTransform
+                  attributeName="transform"
+                  type="translate"
+                  values="0,0; -14,0; 0,0"
+                  dur="2s"
+                  repeatCount="indefinite"
+                />
+              </path>
+            </g>
+          )}
+          {/* Shine */}
+          <rect x="16" y={Math.max(10, 134 - fillHeight + 6)} width="6" height={Math.min(fillHeight - 12, 60)}
+            rx="3" fill="white" opacity="0.25"
+            style={{ transition: "all 0.6s cubic-bezier(0.4,0,0.2,1)" }}
+          />
+        </g>
+        {/* Glass rim */}
+        <line x1="10" y1="10" x2="70" y2="10" stroke="#bfdbfe" strokeWidth="2" strokeLinecap="round" />
+      </svg>
+      <span className="text-2xl font-bold text-blue-700">{safePercent}%</span>
+      <span className="text-xs text-slate-500">of daily goal</span>
+    </div>
+  );
+}
+
 export default function WaterCheckPage() {
   const { user } = useAuth();
   const router = useRouter();
 
   const [weight, setWeight] = useState("");
+  const [weightInput, setWeightInput] = useState("");
+  const [editingWeight, setEditingWeight] = useState(false);
+  const [weightSaved, setWeightSaved] = useState(false);
+
   const [glasses, setGlasses] = useState(0);
-  const [extraMl, setExtraMl] = useState(0); // custom ml added
-  const [customAdd, setCustomAdd] = useState(""); // input field
+  const [extraMl, setExtraMl] = useState(0);
+  const [customAdd, setCustomAdd] = useState("");
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -30,50 +92,46 @@ export default function WaterCheckPage() {
   const [username, setUsername] = useState("");
 
   const saveTimer = useRef(null);
+  const weightInputRef = useRef(null);
 
   const today = toDateId(new Date());
-  const GLASS_SIZE = 250; // ml
+  const GLASS_SIZE = 250;
   const waterPerKg = 35;
 
   const recommended = weight ? Number(weight) * waterPerKg : 0;
   const consumed = glasses * GLASS_SIZE + extraMl;
-
-  const percentage = recommended
-    ? Math.min((consumed / recommended) * 100, 100)
-    : 0;
-
-  // define percent after percentage exists
+  const percentage = recommended ? Math.min((consumed / recommended) * 100, 100) : 0;
   const percent = Math.round(percentage);
+  const showGoal = weight && Number(weight) > 0 && consumed >= recommended && recommended > 0;
 
-  const showGoal =
-    weight && Number(weight) > 0 && recommended > 0 && consumed >= recommended;
-
-  // LOAD
   useEffect(() => {
     if (!user) return;
-
     let mounted = true;
 
     const fetchData = async () => {
       setLoading(true);
-
       try {
-        // profile username
         const profileRef = doc(db, "users", user.uid);
         const profileSnap = await getDoc(profileRef);
+
         if (profileSnap.exists() && mounted) {
-          setUsername(profileSnap.data()?.username || "");
+          const data = profileSnap.data();
+          setUsername(data?.username || "");
+          if (data?.weight) {
+            setWeight(data.weight);
+            setWeightInput(data.weight);
+            setWeightSaved(true);
+          } else {
+            setEditingWeight(true);
+          }
         }
 
-        // today's data
-        const ref = doc(db, "users", user.uid, "waterIntake", today);
-        const snap = await getDoc(ref);
-
-        if (mounted && snap.exists()) {
-          const data = snap.data();
-          setWeight(data.weight ?? "");
-          setGlasses(Number(data.glasses ?? 0));
-          setExtraMl(Number(data.extraMl ?? 0));
+        const intakeRef = doc(db, "users", user.uid, "waterIntake", today);
+        const intakeSnap = await getDoc(intakeRef);
+        if (mounted && intakeSnap.exists()) {
+          const d = intakeSnap.data();
+          setGlasses(Number(d.glasses ?? 0));
+          setExtraMl(Number(d.extraMl ?? 0));
         }
       } catch (err) {
         console.error("fetch error:", err);
@@ -86,194 +144,230 @@ export default function WaterCheckPage() {
     return () => (mounted = false);
   }, [user, today]);
 
-  // AUTOSAVE
   useEffect(() => {
-    if (!user) return;
+    if (editingWeight && weightInputRef.current) weightInputRef.current.focus();
+  }, [editingWeight]);
 
+  const handleSaveWeight = async () => {
+    const val = Number(weightInput);
+    if (!val || val <= 0) return;
+    try {
+      await setDoc(doc(db, "users", user.uid), { weight: weightInput }, { merge: true });
+      setWeight(weightInput);
+      setWeightSaved(true);
+      setEditingWeight(false);
+    } catch (err) {
+      console.error("weight save error:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (!user || !weight) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
-
     saveTimer.current = setTimeout(async () => {
       setSaving(true);
       setMsg("");
-
       try {
         await setDoc(
           doc(db, "users", user.uid, "waterIntake", today),
-          {
-            date: today,
-            weight,
-            glasses,
-            extraMl,
-            consumed,
-            recommended,
-          },
+          { date: today, glasses, extraMl, consumed, recommended },
           { merge: true }
         );
-
-        setMsg("Saved");
+        setMsg("Saved ✓");
         setTimeout(() => setMsg(""), 1500);
       } catch (err) {
-        console.error("save error:", err);
         setMsg("Failed to save");
       } finally {
         setSaving(false);
       }
     }, 700);
-
     return () => clearTimeout(saveTimer.current);
-  }, [user, weight, glasses, extraMl]);
+  }, [user, glasses, extraMl]);
 
-  // custom ml add
   const handleAddCustom = () => {
     const ml = Number(customAdd);
     if (!ml || ml <= 0) return;
-
     setExtraMl((prev) => prev + ml);
     setCustomAdd("");
   };
 
-  // ---------- UI ----------
   if (!user)
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-center text-white">Please log in to continue.</p>
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <p className="text-slate-600 text-sm">Please log in to continue.</p>
       </div>
     );
 
   if (loading)
     return (
-      <div className="min-h-screen flex items-center justify-center ">
-        <div className="flex flex-col items-center gap-4">
-          <svg className="animate-spin h-10 w-10 text-blue-600" viewBox="0 0 24 24">
-            <circle className="opacity-25" cx="12" cy="12" r="10" strokeWidth="4"></circle>
-            <path className="opacity-75" d="M4 12a8 8 0 018-8v8z"></path>
-          </svg>
-          <p className="text-slate-700">Loading your water data...</p>
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 rounded-full border-2 border-blue-200 border-t-blue-600 animate-spin" />
+          <p className="text-sm text-slate-500">Loading…</p>
         </div>
       </div>
     );
 
   return (
-    <main className="min-h-screen overflow-x-hidden text-slate-900 flex flex-col items-center py-12 px-6">
-      {/* centered top blob */}
-      <div className="absolute pointer-events-none left-1/2 -translate-x-1/2 -top-20 w-72 h-72 bg-blue-100 rounded-full blur-3xl opacity-60"></div>
-
-      {/* right-bottom blob kept inside viewport */}
-      <div className="absolute pointer-events-none right-8 -bottom-24 w-72 h-72 bg-blue-200 rounded-full blur-3xl opacity-50"></div>
-
-      <div className="w-full max-w-3xl relative">
+    <main className="min-h-screen bg-slate-50">
+      {/* Top nav — full width, no overlap */}
+        
         <TopMenuButton />
+      
 
-        <div className="bg-white rounded-2xl shadow-xl p-6 border border-blue-100">
-          {/* HEADER */}
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
-            <div>
-              
-              <p className="text-sm text-slate-600 mt-1">
-                Hello, <span className="text-blue-700 font-semibold">{username}</span> 👋
-                
-              </p>
-              <h1 className="text-3xl font-bold text-cyan-900 flex items-center gap-2">
-                STAY  <span className="text-white bg-cyan-900 px-2">HYDRATED!</span>
-              </h1>
+      <div className="max-w-5xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+
+        {/* Page header */}
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-slate-900">Stay Hydrated 💧</h1>
+          <p className="text-sm text-slate-500 mt-0.5">
+            Hello, <span className="text-blue-600 font-medium">{username}</span> — here's your water intake for today.
+          </p>
+        </div>
+
+        {/* Main 2-col grid on desktop, stacked on mobile */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+          {/* LEFT — glass visualizer */}
+          <div className="lg:col-span-1 bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col items-center justify-center py-8 px-4 gap-4">
+            <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">Today's Intake</p>
+            <WaterGlass percent={percent} />
+            <div className="text-center mt-2">
+              <p className="text-3xl font-bold text-slate-900">{(consumed / 1000).toFixed(2)} <span className="text-base font-medium text-slate-400">L</span></p>
+              <p className="text-sm text-slate-500">of {(recommended / 1000).toFixed(2)} L goal</p>
             </div>
-
-            <div>
+            {showGoal && (
+              <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-2 text-sm font-semibold text-emerald-700 text-center">
+                🎉 Daily goal reached!
+              </div>
+            )}
+            {/* Save status */}
+            <div className="h-4">
               {saving ? (
-                <div className="flex items-center gap-2 text-sm text-blue-700">
-                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" strokeWidth="3"></circle>
-                    <path className="opacity-75" d="M4 12a8 8 0 018-8v8z"></path>
-                  </svg>
+                <div className="flex items-center gap-1.5 text-blue-400 text-xs">
+                  <div className="h-3 w-3 rounded-full border border-blue-200 border-t-blue-500 animate-spin" />
                   Saving…
                 </div>
               ) : (
-                <p className="text-sm text-slate-500">{msg || "Saved"}</p>
+                <p className="text-xs text-slate-400">{msg}</p>
               )}
             </div>
           </div>
 
-          {/* CONTENT GRID */}
-          <div className="mt-6 grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-6">
-            {/* Weight */}
-            <div className="bg-blue-50 p-5 rounded-xl border border-blue-100">
-              <label className="block text-sm text-slate-700 mb-2">Enter your weight (kg)</label>
-              <input
-                type="number"
-                value={weight}
-                onChange={(e) => setWeight(e.target.value)}
-                className="w-full px-4 py-2 rounded-lg border border-blue-200"
-                placeholder="e.g., 60"
-              />
-              <p className="mt-2 text-sm text-slate-600">
-                Recommended:{" "}
-                <span className="font-semibold text-blue-700">{(recommended / 1000).toFixed(2)} L/day</span>
-              </p>
+          {/* RIGHT — controls */}
+          <div className="lg:col-span-2 flex flex-col gap-4">
 
-              <p className="mt-2 text-xs text-slate-500">1 glass = {GLASS_SIZE} ml</p>
+            {/* Weight card */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm px-5 py-4">
+              <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-3">Your Weight</p>
+              {editingWeight ? (
+                <div className="flex flex-wrap items-center gap-2">
+                  <input
+                    ref={weightInputRef}
+                    type="number"
+                    value={weightInput}
+                    onChange={(e) => setWeightInput(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleSaveWeight()}
+                    placeholder="Enter weight in kg"
+                    className="w-40 px-3 py-2 text-sm border border-blue-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-100"
+                  />
+                  <button onClick={handleSaveWeight}
+                    className="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition">
+                    Save
+                  </button>
+                  {weightSaved && (
+                    <button onClick={() => { setWeightInput(weight); setEditingWeight(false); }}
+                      className="text-sm text-slate-400 hover:text-slate-600 transition">
+                      Cancel
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="flex flex-wrap items-center gap-4">
+                  <div>
+                    <span className="text-3xl font-bold text-slate-900">{weight}</span>
+                    <span className="text-slate-400 text-sm ml-1">kg</span>
+                  </div>
+                  <div className="h-8 w-px bg-slate-200" />
+                  <div>
+                    <p className="text-xs text-slate-400">Daily goal</p>
+                    <p className="text-lg font-semibold text-blue-600">{(recommended / 1000).toFixed(2)} L</p>
+                  </div>
+                  <div className="h-8 w-px bg-slate-200" />
+                  <div>
+                    <p className="text-xs text-slate-400">Formula</p>
+                    <p className="text-sm text-slate-600">weight × 35 ml</p>
+                  </div>
+                  <button onClick={() => setEditingWeight(true)}
+                    title="Edit weight"
+                    className="ml-auto p-2 rounded-xl text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                    </svg>
+                  </button>
+                </div>
+              )}
             </div>
 
-            {/* Progress */}
-            <div className="bg-blue-50 p-5 rounded-xl border border-blue-100">
-
-              <div className="flex items-center gap-6">
-                <p className="text-sm text-slate-800 mb-2">Your Progress</p>
-                <CircularProgress value={percent} size={140} stroke={12} />
-
-                <div>
-                  <div className="text-sm text-slate-700">Consumed</div>
-                  <div className="text-lg font-semibold">{(consumed / 1000).toFixed(2)} L</div>
-                  <div className="text-sm text-slate-600">Goal: {(recommended / 1000).toFixed(2)} L</div>
-                </div>
+            {/* Progress bar card */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm px-5 py-4">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">Progress</p>
+                <span className="text-sm font-semibold text-blue-600">{percent}%</span>
               </div>
-
-              <p className="text-sm text-slate-600 mb-4">
-                {glasses} glasses + {extraMl} ml = {(consumed / 1000).toFixed(2)} L /{" "}
-                {(recommended / 1000).toFixed(2)} L
+              <div className="w-full bg-slate-100 rounded-full h-3 mb-2">
+                <div
+                  className="bg-gradient-to-r from-blue-500 to-cyan-400 h-3 rounded-full transition-all duration-500"
+                  style={{ width: `${percent}%` }}
+                />
+              </div>
+              <p className="text-xs text-slate-400">
+                {glasses} glass{glasses !== 1 ? "es" : ""} ({glasses * GLASS_SIZE} ml) + {extraMl} ml custom = <span className="text-slate-600 font-medium">{consumed} ml</span>
               </p>
+            </div>
 
-              {showGoal && (
-                <p className="text-blue-700 font-semibold mb-3 animate-bounce">🎉 Goal Reached!</p>
-              )}
-
-              {/* Glass buttons */}
-              <div className="flex gap-3 flex-wrap mb-4">
-                <button onClick={() => setGlasses((g) => g + 1)} className="px-3 py-1 bg-blue-600 text-white rounded-lg">
-                  + Add Glass
+            {/* Glass controls card */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm px-5 py-4">
+              <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-4">Log Water</p>
+              <div className="flex flex-wrap gap-2 mb-4">
+                <button onClick={() => setGlasses((g) => g + 1)}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition">
+                  + Add Glass <span className="text-blue-200 text-xs font-normal">(250 ml)</span>
                 </button>
-                <button onClick={() => setGlasses((g) => Math.max(0, g - 1))} className="px-3 py-1 bg-red-500 text-white rounded-lg">
-                  - Remove
+                <button onClick={() => setGlasses((g) => Math.max(0, g - 1))}
+                  className="px-4 py-2.5 bg-white border border-slate-200 hover:border-red-300 hover:text-red-500 text-slate-600 text-sm font-medium rounded-xl transition">
+                  − Remove Glass
                 </button>
-                <button
-                  onClick={() => {
-                    setGlasses(0);
-                    setExtraMl(0);
-                  }}
-                  className="px-3 py-1 bg-gray-500 text-white rounded-lg"
-                >
+                <button onClick={() => { setGlasses(0); setExtraMl(0); }}
+                  className="px-4 py-2.5 bg-white border border-slate-200 hover:border-slate-400 text-slate-400 text-sm font-medium rounded-xl transition ml-auto">
                   Reset
                 </button>
               </div>
 
-              {/* Custom ml add */}
-              <div className="flex gap-3">
+              {/* Custom ml */}
+              <div className="flex gap-2">
                 <input
                   type="number"
                   value={customAdd}
                   onChange={(e) => setCustomAdd(e.target.value)}
-                  className="px-3 py-2 w-full border rounded-lg"
-                  placeholder="Add custom ml (e.g., 120)"
+                  onKeyDown={(e) => e.key === "Enter" && handleAddCustom()}
+                  placeholder="Add custom ml  (e.g. 120)"
+                  className="flex-1 px-4 py-2.5 text-sm border border-slate-200 rounded-xl outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 min-w-0"
                 />
-                <button onClick={handleAddCustom} className="px-4 py-2 bg-blue-700 text-white rounded-lg">
-                  Add
+                <button onClick={handleAddCustom}
+                  className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition whitespace-nowrap">
+                  Add ml
                 </button>
               </div>
             </div>
-          </div>
 
-          <button onClick={() => router.push("/dashboard")} className="mt-6 px-4 py-2 bg-blue-700 text-white rounded-lg">
-            ⬅ Back to Dashboard
-          </button>
+            {/* Back */}
+            <button onClick={() => router.push("/dashboard")}
+              className="text-sm text-slate-400 hover:text-blue-600 transition flex items-center gap-1.5 self-start mt-1">
+              ← Back to Dashboard
+            </button>
+
+          </div>
         </div>
       </div>
     </main>
