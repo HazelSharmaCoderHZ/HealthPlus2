@@ -805,7 +805,7 @@ export default function SleepLogPage() {
             <button
               onClick={handleSaveSettings}
               disabled={settingsSaving}
-              className="mt-1 inline-flex items-center rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-white disabled:opacity-60 transition"
+              className="mt-1 inline-flex items-center rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white   disabled:opacity-60 transition"
             >
               {settingsSaving ? "Saving..." : "Save Settings"}
             </button>

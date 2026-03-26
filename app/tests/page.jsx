@@ -1,5 +1,5 @@
 "use client";
-
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { tests } from "./data";
 import Test from "./Test";
@@ -7,7 +7,7 @@ import TopMenuButton from "../../components/TopMenuButton";
 
 export default function AssessmentPage() {
   const [selectedTest, setSelectedTest] = useState(null);
-
+const router = useRouter();
   if (selectedTest) {
     return <Test test={tests[selectedTest]} />;
   }
@@ -29,6 +29,19 @@ export default function AssessmentPage() {
           </div>
         ))}
       </div>
-    </div>
+      <p className="max-w-2xl mx-auto text-gray-800 text-sm md:text-base text-center leading-relaxed px-6 py-4 rounded-lg ">
+  The <span className="font-semibold text-blue-600">PHQ-9</span> and <span className="font-semibold text-blue-600">GAD-7</span> are brief, self-administered screening tools used by healthcare providers to assess symptoms of depression and generalized anxiety disorder (GAD). 
+  <br />
+  <span className="text-xs text-gray-500 mt-2 block italic">
+    Developed by Dr. Robert L. Spitzer, Dr. Janet B.W. Williams, Dr. Kurt Kroenke, and colleagues.
+  </span>
+</p>
+<button
+        onClick={() => router.push("/dashboard")}
+        className="mt-8 mb-4 px-5 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold  transition"
+      >
+        ⬅ Back to Dashboard
+      </button>
+ </div>
   );
 }

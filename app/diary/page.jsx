@@ -6,7 +6,7 @@ import EntryForm from "./components/entryform";
 import { getJournalEntry, saveJournalEntry, deleteJournalEntry } from "./firebaseFunctions";
 import { useAuth } from "@/context/AuthContext";
 import TopMenuButton from "../../components/TopMenuButton"; 
-
+import { useRouter } from "next/navigation";
 function toDateId(d) {
   // returns YYYY-MM-DD in local timezone
   const yyyy = d.getFullYear();
@@ -17,7 +17,7 @@ function toDateId(d) {
 
 export default function DiaryPage() {
   const { user, loading: authLoading } = useAuth();
-
+const router = useRouter();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [entry, setEntry] = useState(null);
   const [entries, setEntries] = useState({});
@@ -175,6 +175,10 @@ export default function DiaryPage() {
           </div>
         </div>
       </div>
+      <button onClick={() => router.push("/dashboard")}
+              className="text-sm hover:text-slate-400 text-blue-600 transition flex items-center gap-1.5 mx-auto py-6 self-start mt-1">
+              ← Back to Dashboard
+            </button>
     </div>
   );
 }
