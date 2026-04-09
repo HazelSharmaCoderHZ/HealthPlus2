@@ -8,850 +8,500 @@ import { Flip } from "gsap/Flip";
 import { SplitText } from "gsap/SplitText";
 import { TextPlugin } from "gsap/TextPlugin";
 import HealthPlusSection from './HealthPlusSection';
-// Import icons
-import { Utensils, Calendar, ChefHat, Droplet, Moon, BarChart3, ArrowRight, X , CircleCheck,TrendingUp, HeartHandshake} from 'lucide-react';
- 
+import { Utensils, Calendar, ChefHat, Droplet, Moon, BarChart3, ArrowRight, CircleCheck, TrendingUp, HeartHandshake } from 'lucide-react';
 
-// Register all necessary plugins once globally
 gsap.registerPlugin(ScrollTrigger, Flip, SplitText, TextPlugin);
-// --- Component to handle text splitting and word/line animation (Enhanced Flip Effect) ---
 
-
-
-// --- New Component for the "Dear Diary" style effect ---
+// ---------- Particle Explosion ----------
 const ParticleExplosion = ({ triggerRef }) => {
   const containerRef = useRef(null);
 
   useLayoutEffect(() => {
     const container = containerRef.current;
+    if (!container) return;
     const shapes = ['circle', 'square', 'triangle'];
-    const colors = ['#2563eb', '#60a5fa', '#93c5fd', '#1d4ed8']; // Various Blues
+    const colors = ['#2563eb', '#60a5fa', '#93c5fd', '#1d4ed8'];
 
     const createParticle = () => {
       const particle = document.createElement('div');
       const shape = shapes[Math.floor(Math.random() * shapes.length)];
       const color = colors[Math.floor(Math.random() * colors.length)];
       const size = Math.random() * 15 + 5;
-
-      particle.style.position = 'absolute';
-      particle.style.width = `${size}px`;
-      particle.style.height = `${size}px`;
-      particle.style.backgroundColor = color;
-      particle.style.left = '50%';
-      particle.style.top = '50%';
-      particle.style.borderRadius = shape === 'circle' ? '50%' : '2px';
-      particle.style.opacity = '0';
-      
+      particle.style.cssText = `position:absolute;width:${size}px;height:${size}px;background:${color};left:50%;top:50%;border-radius:${shape === 'circle' ? '50%' : '2px'};opacity:0;`;
       container.appendChild(particle);
-
-      // Animate the particle
       gsap.to(particle, {
-        x: (Math.random() - 0.5) * 600,
-        y: (Math.random() - 0.5) * 600,
-        rotation: Math.random() * 360,
-        opacity: 1,
-        duration: 1.5,
-        ease: "power2.out",
-        onComplete: () => {
-          gsap.to(particle, {
-            opacity: 0,
-            duration: 1,
-            onComplete: () => particle.remove()
-          });
-        }
+        x: (Math.random() - 0.5) * 600, y: (Math.random() - 0.5) * 600,
+        rotation: Math.random() * 360, opacity: 1, duration: 1.5, ease: "power2.out",
+        onComplete: () => gsap.to(particle, { opacity: 0, duration: 1, onComplete: () => particle.remove() })
       });
     };
 
+    if (!triggerRef.current) return;
     ScrollTrigger.create({
-      trigger: triggerRef.current,
-      start: "left center",
-      containerAnimation: null, // We'll trigger this when the section is active
-      onEnter: () => {
-        for(let i = 0; i < 40; i++) {
-          setTimeout(createParticle, i * 50);
-        }
-      }
+      trigger: triggerRef.current, start: "left center",
+      onEnter: () => { for (let i = 0; i < 40; i++) setTimeout(createParticle, i * 50); }
     });
   }, [triggerRef]);
 
   return <div ref={containerRef} className="absolute inset-0 pointer-events-none overflow-hidden" />;
 };
 
-
-
-
+// ---------- Word Split Text ----------
 const WordSplitText = ({ children, delay = 0 }) => {
   const textRef = useRef(null);
 
   useLayoutEffect(() => {
-    // 1. Split text into lines first, then words
-    // We wrap lines in a div with 'overflow-hidden' to create the "mask"
-    const split = new SplitText(textRef.current, { 
-      type: "lines,words",
-      linesClass: "overflow-hidden" // This acts as the "window" for the text
-    });
-
-    // 2. Animate the words from below the mask
+    if (!textRef.current) return;
+    const split = new SplitText(textRef.current, { type: "lines,words", linesClass: "overflow-hidden" });
     const textAnimation = gsap.from(split.words, {
-      y: "110%",             // Start completely below the line's container
-      rotationX: -20,        // Subtle tilt for depth
-      opacity: 0,
-      stagger: 0.03,         // Tight, professional stagger
-      duration: 1.2,         // Slightly longer duration for "luxury" feel
-      ease: "power4.out",    // Stronger ease-out for a snappy finish
-      delay: delay,
-      paused: true,
+      y: "110%", rotationX: -20, opacity: 0, stagger: 0.03,
+      duration: 1.2, ease: "power4.out", delay, paused: true,
     });
-
-    // 3. Trigger the animation
     ScrollTrigger.create({
-      trigger: textRef.current.closest('section'), 
-      start: "top 75%",      // Trigger slightly earlier for better UX
+      trigger: textRef.current.closest('section'),
+      start: "top 75%",
       onEnter: () => textAnimation.play(),
       onLeaveBack: () => textAnimation.reverse(),
     });
-
-    return () => {
-      split.revert();
-      textAnimation.kill();
-    };
+    return () => { split.revert(); textAnimation.kill(); };
   }, [delay]);
 
-  return (
-    <div ref={textRef} className="perspective-1000">
-      {children}
-    </div>
-  );
+  return <div ref={textRef} className="perspective-1000">{children}</div>;
 };
 
-const AboutImage = ({ alt, src }) => (
-    // Note: The image should be placed in the public directory, e.g., 'public/img1.png'
-    <div className="mt-12 w-full max-w-lg mx-auto overflow-hidden rounded-xl  border-blue-100/50">
-        <img 
-            src={src} // <-- The image URL/path is inserted here
-            alt={alt} 
-            // Setting a fixed aspect ratio or height is recommended if images aren't uniform
-            className="w-full h-full object-cover aspect-video" 
-        />
-    </div>
-);
-
+// ---------- Splash Screen ----------
 function SplashScreen({ onFinish }) {
   const splashRef = useRef(null);
   const iconRef = useRef(null);
 
   useLayoutEffect(() => {
     const tl = gsap.timeline({ onComplete: onFinish });
-
-    tl.fromTo(
-      splashRef.current,
-      { opacity: 1 },
-      { opacity: 1, duration: 0.2 }
-    )
-      .fromTo(
-        iconRef.current,
-        { scale: 0, rotate: -20 },
-        { scale: 1.4, rotate: 0, duration: 0.8, ease: "back.out(1.8)" }
-      )
-      .to(iconRef.current, {
-        scale: 1.15,
-        duration: 0.6,
-        yoyo: true,
-        repeat: 1,
-      })
-      .to(iconRef.current, {
-        scale: 0,
-        opacity: 0,
-        duration: 0.6,
-      })
-      .to(splashRef.current, {
-        opacity: 0,
-        duration: 0.6,
-      });
+    tl.fromTo(splashRef.current, { opacity: 1 }, { opacity: 1, duration: 0.2 })
+      .fromTo(iconRef.current, { scale: 0, rotate: -20 }, { scale: 1.4, rotate: 0, duration: 0.8, ease: "back.out(1.8)" })
+      .to(iconRef.current, { scale: 1.15, duration: 0.6, yoyo: true, repeat: 1 })
+      .to(iconRef.current, { scale: 0, opacity: 0, duration: 0.6 })
+      .to(splashRef.current, { opacity: 0, duration: 0.6 });
   }, [onFinish]);
 
   return (
-    <div
-      ref={splashRef}
-      className="fixed inset-0 z-[9999] bg-gradient-to-br from-blue-700 via-blue-500 to-blue-700
- flex items-center justify-center"
-    >
+    <div ref={splashRef} className="fixed inset-0 z-[9999] bg-gradient-to-br from-blue-700 via-blue-500 to-blue-700 flex items-center justify-center">
       <div className="absolute w-[500px] h-[500px] bg-white/10 rounded-full blur-[140px]" />
-      <HeartHandshake
-        ref={iconRef}
-        className="w-32 h-32 text-white drop-shadow-2xl"
-      />
+      <HeartHandshake ref={iconRef} className="w-32 h-32 text-white drop-shadow-2xl" />
     </div>
   );
 }
 
-
-// --- The Main Component ---
+// ---------- Main Component ----------
 export default function HomePage() {
   const statsRef = useRef<HTMLDivElement | null>(null);
-const statsAnimatedRef = useRef(false);
-<HealthPlusSection />
+  const statsAnimatedRef = useRef(false);
   const mainRef = useRef(null);
   const [showSplash, setShowSplash] = useState(true);
 
-  /* ================= REFS ================= */
   const aboutSectionRef = useRef<HTMLDivElement | null>(null);
   const aboutTrackRef = useRef<HTMLDivElement | null>(null);
   const efficiencySectionRef = useRef<HTMLDivElement | null>(null);
   const chartPathRef = useRef<SVGPathElement | null>(null);
-  const typeTargetRef = useRef(null); // Ref for the text
+  const typeTargetRef = useRef(null);
   const cursorRef = useRef(null);
   const servicesSectionRef = useRef<HTMLDivElement | null>(null);
   const servicesTrackRef = useRef<HTMLDivElement | null>(null);
   const servicesTitleRef = useRef<HTMLDivElement | null>(null);
-
   const aboutPinSpacerRef = useRef(null);
   const servicesPinSpacerRef = useRef(null);
 
-  /* ================= GSAP ANIMATIONS & FIXES ================= */
+  // Typewriter — only after splash is gone
   useEffect(() => {
-  if (!showSplash && typeTargetRef.current) {
-    gsap.fromTo(
-      typeTargetRef.current,
-      { text: "" },
-      {
-        duration: 2.5,
-        text: "Track. Share. Improve.",
-        ease: "none",
-      }
-    );
-  }
-}, [showSplash]);
-
-  useLayoutEffect(() => {
-if (statsRef.current) {
-  ScrollTrigger.create({
-    trigger: statsRef.current,
-    start: "top 75%",
-    once: true,
-    onEnter: () => {
-      if (statsAnimatedRef.current) return;
-      statsAnimatedRef.current = true;
-
-      const numbers =
-  statsRef.current!.querySelectorAll<HTMLElement>("[data-value]");
-
-numbers.forEach((el) => {
-  const target = Number(el.dataset.value);
-
-  gsap.fromTo(
-    el,
-    { innerText: 0 },
-    {
-      innerText: target,
-      duration: 2,
-      ease: "power2.out",
-      snap: { innerText: 1 },
-      onUpdate: () => {
-        el.innerText = Math.floor(Number(el.innerText)).toLocaleString();
-      },
+    if (!showSplash && typeTargetRef.current) {
+      gsap.fromTo(typeTargetRef.current, { text: "" }, {
+        duration: 2.5, text: "Track. Share. Improve.", ease: "none",
+      });
     }
-  );
-});
+  }, [showSplash]);
 
-    },
-  });
-}
+  // Stats counter — safe null guard
+  useEffect(() => {
+    if (showSplash) return; // wait until splash done so DOM is stable
+    const el = statsRef.current;
+    if (!el) return;
 
-    let ctx = gsap.context(() => {
-      // 1. TYPEWRITER EFFECT: "Track. Share. Improve."
-      const tl = gsap.timeline();
-      
-      tl.to(typeTargetRef.current, {
-        duration: 2.5,
-        text: "Track. Share. Improve.",
-        ease: "none",
-      });
+    const trigger = ScrollTrigger.create({
+      trigger: el,
+      start: "top 75%",
+      once: true,
+      onEnter: () => {
+        if (statsAnimatedRef.current) return;
+        statsAnimatedRef.current = true;
 
-      // 2. BLINKING CURSOR EFFECT
-      gsap.to(cursorRef.current, {
-        opacity: 0,
-        ease: "power2.inOut",
-        repeat: -1,
-        duration: 0.6
-      });
-      // --- ABOUT SECTION HORIZONTAL SCROLL FIX (Subtle Scale) ---
-      if (aboutSectionRef.current && aboutTrackRef.current) {
-        const setAboutPinSpacerRef = (st) => {
-          aboutPinSpacerRef.current = st.spacer;
-          if (aboutPinSpacerRef.current) {
-            gsap.set(aboutPinSpacerRef.current, { clearProps: "width,height" });
-          }
-        };
+        // Re-check ref inside callback for safety
+        if (!statsRef.current) return;
+        const numbers = statsRef.current.querySelectorAll<HTMLElement>("[data-value]");
 
-        const aboutDistance =
-          aboutTrackRef.current.scrollWidth -
-          aboutSectionRef.current.offsetWidth;
-
-        const aboutScrollTween = gsap.to(aboutTrackRef.current, {
-          x: -aboutDistance,
-          ease: "none",
+        numbers.forEach((span) => {
+          const target = Number(span.dataset.value);
+          gsap.fromTo(span,
+            { innerText: 0 },
+            {
+              innerText: target, duration: 2, ease: "power2.out",
+              snap: { innerText: 1 },
+              onUpdate: function () {
+                span.innerText = Math.floor(Number(span.innerText)).toLocaleString();
+              },
+            }
+          );
         });
-       
-
-
-       ScrollTrigger.create({
-  trigger: aboutSectionRef.current,
-  pin: true,
-  anticipatePin: 1,
-  invalidateOnRefresh: true,
-  start: "top top",
-  end: `+=${aboutDistance}`,
-  scrub: 1,
-  animation: aboutScrollTween,
-  onRefreshInit: setAboutPinSpacerRef,
-  onUpdate: (self) => {
-    gsap.to(aboutTrackRef.current, {
-      scale: 1 + (self.progress * 0.03),
-      duration: 0.3,
-      ease: "none",
+      },
     });
-  }
-});
 
+    return () => trigger.kill();
+  }, [showSplash]); // re-runs once splash finishes
+
+  // All other GSAP animations
+  useLayoutEffect(() => {
+    if (showSplash) return;
+
+    const ctx = gsap.context(() => {
+      // Blinking cursor
+      if (cursorRef.current) {
+        gsap.to(cursorRef.current, { opacity: 0, ease: "power2.inOut", repeat: -1, duration: 0.6 });
       }
 
-      // --- SERVICES SECTION HORIZONTAL SCROLL & CARD ANIMATIONS ---
-      if (servicesSectionRef.current && servicesTrackRef.current && servicesTitleRef.current) {
-        const setServicesPinSpacerRef = (st) => {
-          servicesPinSpacerRef.current = st.spacer;
-          if (servicesPinSpacerRef.current) {
-            gsap.set(servicesPinSpacerRef.current, { clearProps: "width,height" });
-          }
-        };
-        
-        const servicesDistance =
-          servicesTrackRef.current.scrollWidth -
-          servicesSectionRef.current.offsetWidth;
-
-        const servicesScrollTween = gsap.to(servicesTrackRef.current, {
-          x: -servicesDistance,
-          ease: "none",
-        });
-
+      // About horizontal scroll
+      if (aboutSectionRef.current && aboutTrackRef.current) {
+        const aboutDistance = aboutTrackRef.current.scrollWidth - aboutSectionRef.current.offsetWidth;
+        const aboutScrollTween = gsap.to(aboutTrackRef.current, { x: -aboutDistance, ease: "none" });
         ScrollTrigger.create({
-  trigger: servicesSectionRef.current,
-  pin: true,
-  anticipatePin: 1,
-  invalidateOnRefresh: true,
-  start: "top top",
-  end: `+=${servicesDistance}`,
-  scrub: 1,
-  animation: servicesScrollTween,
-  onRefreshInit: setServicesPinSpacerRef,
-});
-
-
-        // --- SERVICES CARD ENTRANCE EFFECT (Scale/Fade) ---
-        gsap.from(servicesTrackRef.current.children, {
-            scale: 0.8,
-            opacity: 0,
-            x: 50, // Slide in from right
-            duration: 0.8,
-            stagger: 0.5,
-            ease: "power2.out",
-            scrollTrigger: {
-                trigger: servicesSectionRef.current,
-                containerAnimation: servicesScrollTween,
-                start: "left 80%",
-                end: "left 20%",
-                toggleActions: "play none none reverse",
-            }
+          trigger: aboutSectionRef.current, pin: true, anticipatePin: 1,
+          invalidateOnRefresh: true, start: "top top",
+          end: `+=${aboutDistance}`, scrub: 1, animation: aboutScrollTween,
+          onRefreshInit: (st) => {
+            aboutPinSpacerRef.current = st.spacer;
+            if (aboutPinSpacerRef.current) gsap.set(aboutPinSpacerRef.current, { clearProps: "width,height" });
+          },
+          onUpdate: (self) => {
+            gsap.to(aboutTrackRef.current, { scale: 1 + (self.progress * 0.03), duration: 0.3, ease: "none" });
+          }
         });
-         // --- EFFICIENCY GRAPH ---
+      }
+
+      // Services horizontal scroll
+      if (servicesSectionRef.current && servicesTrackRef.current && servicesTitleRef.current) {
+        const servicesDistance = servicesTrackRef.current.scrollWidth - servicesSectionRef.current.offsetWidth;
+        const servicesScrollTween = gsap.to(servicesTrackRef.current, { x: -servicesDistance, ease: "none" });
+        ScrollTrigger.create({
+          trigger: servicesSectionRef.current, pin: true, anticipatePin: 1,
+          invalidateOnRefresh: true, start: "top top",
+          end: `+=${servicesDistance}`, scrub: 1, animation: servicesScrollTween,
+          onRefreshInit: (st) => {
+            servicesPinSpacerRef.current = st.spacer;
+            if (servicesPinSpacerRef.current) gsap.set(servicesPinSpacerRef.current, { clearProps: "width,height" });
+          },
+        });
+
+        gsap.from(servicesTrackRef.current.children, {
+          scale: 0.8, opacity: 0, x: 50, duration: 0.8, stagger: 0.5, ease: "power2.out",
+          scrollTrigger: {
+            trigger: servicesSectionRef.current, containerAnimation: servicesScrollTween,
+            start: "left 80%", end: "left 20%", toggleActions: "play none none reverse",
+          }
+        });
+      }
+
+      // Efficiency graph
       if (chartPathRef.current) {
         const path = chartPathRef.current;
         const length = path.getTotalLength();
         gsap.set(path, { strokeDasharray: length, strokeDashoffset: length });
         gsap.to(path, {
           strokeDashoffset: 0,
-          scrollTrigger: {
-            trigger: efficiencySectionRef.current,
-            start: "top 60%",
-            end: "bottom 80%",
-            scrub: 1,
-          }
+          scrollTrigger: { trigger: efficiencySectionRef.current, start: "top 60%", end: "bottom 80%", scrub: 1 }
         });
       }
-      }
-      
-      // --- HERO TEXT PARALLAX (More Dramatic) ---
-      gsap.fromTo(".hero-text-content", 
+
+      // Hero parallax
+      gsap.fromTo(".hero-text-content",
         { y: 0, opacity: 1, scale: 1 },
         {
-          y: -150, 
-          opacity: 0,
-          scale: 0.9, 
-          ease: "power2.in", 
-          scrollTrigger: {
-            trigger: mainRef.current,
-            start: "top top",
-            end: "20% top",
-            scrub: true,
-          }
+          y: -150, opacity: 0, scale: 0.9, ease: "power2.in",
+          scrollTrigger: { trigger: mainRef.current, start: "top top", end: "20% top", scrub: true }
         }
       );
-
     }, mainRef);
-ScrollTrigger.refresh();
 
+    ScrollTrigger.refresh();
     return () => ctx.revert();
-  }, []);
-
-  // Fix for ScrollTrigger Pin Spacer (Layout Shift)
-  useEffect(() => {
-    if (aboutPinSpacerRef.current) {
-        gsap.set(aboutPinSpacerRef.current, { clearProps: "width,height" });
-    }
-    if (servicesPinSpacerRef.current) {
-        gsap.set(servicesPinSpacerRef.current, { clearProps: "width,height" });
-    }
-  }, []);
-
+  }, [showSplash]);
 
   return (
     <div ref={mainRef} className="font-sans antialiased bg-white text-slate-900">
-{showSplash && <SplashScreen onFinish={() => setShowSplash(false)} />}
+      {showSplash && <SplashScreen onFinish={() => setShowSplash(false)} />}
 
-      {/* ================= NAVBAR ================= */}
-      <header className="sticky top-0 z-50 bg-[radial-gradient(circle_at_center,#ffffff_0%,#deebfc_70%)]   border-b border-blue-100/70 shadow-md">
+      {/* NAVBAR */}
+      <header className="sticky top-0 z-50 bg-[radial-gradient(circle_at_center,#ffffff_0%,#deebfc_70%)] border-b border-blue-100/70 shadow-md">
         <nav className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <Link href="/" className="font-bold bg-gradient-to-br from-blue-700 via-blue-600 to-cyan-500 bg-clip-text text-transparent text-xl tracking-tight transition duration-300 hover:text-blue-700">
-            <HeartHandshake className="inline text-blue-600 w-8 h-8 mr-2"/> HealthPlus
+            <HeartHandshake className="inline text-blue-600 w-8 h-8 mr-2" /> HealthPlus
           </Link>
           <div className="hidden sm:flex gap-8 text-base font-semibold bg-gradient-to-br from-blue-700 via-blue-600 to-cyan-500 bg-clip-text text-transparent">
             <a href="#about" className="hover:text-blue-700 transition duration-200">About</a>
             <a href="#services" className="transition duration-200 hover:text-blue-700">Services</a>
-            <a href="#contact" className=" transition duration-200 hover:text-blue-700">Contact</a>
+            <a href="#contact" className="transition duration-200 hover:text-blue-700">Contact</a>
           </div>
           <Link href="/auth/login">
-            <button className="px-4 py-2 rounded-full bg-gradient-to-br from-blue-700 via-blue-600 to-cyan-500 bg-clip-text text-transparent font-black text-lg hover:text-blue-700  transition duration-500  hover:shadow-3xl transform hover:scale-[1.08]">
+            <button className="px-4 py-2 rounded-full bg-gradient-to-br from-blue-700 via-blue-600 to-cyan-500 bg-clip-text text-transparent font-black text-lg hover:text-blue-700 transition duration-500 hover:shadow-3xl transform hover:scale-[1.08]">
               Login
             </button>
           </Link>
-          
         </nav>
       </header>
 
-      {/* ================= HERO (Aesthetic) ================= */}
+      {/* HERO */}
       <main className="min-h-screen bg-[radial-gradient(circle_at_center,#ffffff_0%,#deebfc_70%)] relative overflow-hidden">
-  {/* Decorative background elements */}
-  <div className="absolute top-1/4 left-1/4 h-72 w-72 bg-blue-200/40 rounded-full blur-[120px] animate-pulse-slow"></div>
-  <div className="absolute bottom-1/4 right-1/4 h-96 w-96 bg-blue-300/30 rounded-full blur-[150px] animate-pulse-slow delay-1000"></div>
-
-  {/* Main Layout */}
-  <div className="relative z-10 min-h-screen max-w-7xl mx-auto px-8 flex items-center justify-between gap-16">
-    
-    {/* LEFT: Hero Text */}
-    <div className="flex-1 flex flex-col justify-center text-left">
-      <h1 className="text-5xl sm:text-7xl lg:text-7xl font-black leading-tight tracking-tighter text-slate-900">
-        <span ref={typeTargetRef}></span>
-        <span ref={cursorRef} className="text-blue-600 ml-1">|</span>
-        <br />
-        <span className="bg-gradient-to-br from-blue-700 via-blue-600 to-cyan-500 bg-clip-text text-transparent">
-          Together.
-        </span>
-      </h1>
-
-      <p className="mt-6 text-2xl text-slate-600 max-w-2xl font-light">
-        Shared progress, Achieve goals faster & together.
-      </p>
-
-      <Link href="/auth/signup">
-        <button className="mt-12 w-fit px-6 py-3 rounded-full bg-blue-600 text-white font-black text-lg shadow-2xl transition duration-500 hover:bg-blue-700 hover:shadow-3xl transform hover:scale-[1.08]">
-          Get Started <ArrowRight className="inline ml-3 w-6 h-6" />
-        </button>
-      </Link>
-    </div>
-
-    {/* RIGHT: DNA Animation */}
-    <div className="flex-1 flex items-center justify-center">
-      <div className="dna">
-        {Array.from({ length: 15 }).map((_, i) => (
-          <div className="link" key={i}>
-            <div></div>
-            <div></div>
+        <div className="absolute top-1/4 left-1/4 h-72 w-72 bg-blue-200/40 rounded-full blur-[120px] animate-pulse-slow"></div>
+        <div className="absolute bottom-1/4 right-1/4 h-96 w-96 bg-blue-300/30 rounded-full blur-[150px] animate-pulse-slow delay-1000"></div>
+        <div className="relative z-10 min-h-screen max-w-7xl mx-auto px-8 flex items-center justify-between gap-16">
+          <div className="flex-1 flex flex-col justify-center text-left hero-text-content">
+            <h1 className="text-5xl sm:text-7xl lg:text-7xl font-black leading-tight tracking-tighter text-slate-900">
+              <span ref={typeTargetRef}></span>
+              <span ref={cursorRef} className="text-blue-600 ml-1">|</span>
+              <br />
+              <span className="bg-gradient-to-br from-blue-700 via-blue-600 to-cyan-500 bg-clip-text text-transparent">Together.</span>
+            </h1>
+            <p className="mt-6 text-2xl text-slate-600 max-w-2xl font-light">Shared progress, Achieve goals faster & together.</p>
+            <Link href="/auth/signup">
+              <button className="mt-12 w-fit px-6 py-3 rounded-full bg-blue-600 text-white font-black text-lg shadow-2xl transition duration-500 hover:bg-blue-700 hover:shadow-3xl transform hover:scale-[1.08]">
+                Get Started <ArrowRight className="inline ml-3 w-6 h-6" />
+              </button>
+            </Link>
           </div>
-        ))}
-      </div>
-    </div>
-
-  </div>
-</main>
-
-{/* ================= TRUST STATS ================= */}
-<section className="py-28 bg-white">
-  <div className="max-w-5xl mx-auto px-6">
-    
-    <div ref={statsRef}  className="bg-blue-600 rounded-3xl px-10 py-16 shadow-2xl">
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-12 text-center text-white">
-
-        <div>
-          <h3 className="text-5xl font-black">
-  <span data-value="50000">0</span>+
-</h3>
-
-          <p className="mt-2 text-blue-100">Active Users</p>
-        </div>
-
-        <div>
-          <h3 className="text-5xl font-black">
-  <span data-value="2000000">0</span>+
-</h3>
-
-          <p className="mt-2 text-blue-100">Goals Achieved</p>
-        </div>
-
-        <div>
-          <h3 className="text-5xl font-black">
-  <span data-value="98">0</span>%
-</h3>
-<p className="mt-2 text-blue-100">Satisfaction</p>
-        </div>
-
-      </div>
-    </div>
-
-    <div className="mt-16 grid sm:grid-cols-3 gap-8 text-center">
-  <div className="flex items-center justify-center gap-3 text-slate-700 font-semibold">
-    <CircleCheck className="text-xl font-extrabold text-blue-600" />
-    Clinically inspired tracking
-  </div>
-  <div className="flex items-center justify-center gap-3 text-slate-700 font-semibold">
-    <TrendingUp className="text-blue-600" />
-    Proven habit consistency
-  </div>
-  <div className="flex items-center justify-center gap-3 text-slate-700 font-semibold">
-    <HeartHandshake className="text-blue-600" />
-    Trusted by teams & families
-  </div>
-</div>
-
-
-  </div>
-</section>
-
-
-<section
-  id="anim"
-  className="min-h-screen overflow-hidden relative  -mt-px
-             bg-gradient-to-b
-             from-[#275fcf]
-             via-[#1d0269]
-             to-[#1f0269]"
->
-
-  {/* SLIDE 1: Intro/Gap */}
-          <div className="items-center justify-center mb-2">
-            <div className="mb-3">
-  <div className="rocket">
-    <div className="rocket-body">
-      <div className="body"></div>
-      <div className="fin fin-left"></div>
-      <div className="fin fin-right"></div>
-      <div className="window"></div>
-    </div>
-    <div className="exhaust-flame"></div>
-    <ul className="exhaust-fumes">
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-    </ul>
-    <ul className="star">
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-    </ul>
-  </div>
-  </div> 
-  </div>
-</section>
-
-
-
-      {/* ================= ABOUT (HORIZONTAL SCROLL & Word Split Animation - NO BOXES) ================= */}
-      <section
-        id="about"
-        ref={aboutSectionRef}
-        className="h-screen  overflow-hidden "
-      >
-       <div ref={aboutTrackRef} className="flex h-screen w-fit bg-white">
-  
-  {/* SLIDE 1: The Hook */}
-  <Slide>
-    <div className="relative">
-      <span className="absolute -top-20 -left-10 text-[20rem] font-black text-blue-50/70 select-none -z-10">01</span>
-      <WordSplitText>
-        <h1 className="text-7xl md:text-8xl font-black leading-[0.9] tracking-tighter text-slate-900">
-          Your <span className="text-blue-600">Wellness</span> <br />
-          is better when <br />
-          <span className="relative">
-            Shared.
-            <svg className="absolute -bottom-2 left-0 w-full h-4 text-blue-200" viewBox="0 0 100 10" preserveAspectRatio="none">
-              <path d="M0 5 Q 25 0 50 5 T 100 5" stroke="currentColor" strokeWidth="4" fill="transparent" />
-            </svg>
-          </span>
-        </h1>
-      </WordSplitText>
-    </div>
-  </Slide>
-
-  {/* SLIDE 2: The Audience (Family/Trainer) */}
-  <Slide>
-    <div className="grid grid-cols-2 gap-10 items-center">
-      <WordSplitText>
-        <h2 className="text-6xl font-bold text-slate-900 leading-tight">
-          A system for <br />
-          <span className="text-blue-600 italic">families</span> & <br />
-          <span className="text-blue-600">gym trainers.</span>
-        </h2>
-      </WordSplitText>
-      
-      {/* Aesthetic Card Visual */}
-      <div className="relative group">
-        <div className="absolute inset-0 bg-blue-700 rounded-[3rem] rotate-3 scale-100 opacity-40 group-hover:rotate-6 border border-blue-600 shadow shadow-3xl shadow-blue-600 transition-transform" />
-        <div className="relative bg-white shadow-xl  border border-slate-100 p-10 rounded-[3rem] shadow-2xl">
-          <div className="flex gap-4 mb-6">
-            <div className="w-12 h-12 rounded-full bg-blue-100" />
-            <div className="w-12 h-12 rounded-full bg-blue-200" />
-            <div className="w-12 h-12 rounded-full bg-blue-600" />
-          </div>
-          <p className="text-slate-400 font-medium tracking-widest uppercase text-xs">Syncing Live</p>
-          <div className="h-2 w-full bg-slate-100 rounded-full mt-4 overflow-hidden">
-            <div className="h-full bg-blue-600 w-2/3" />
+          <div className="flex-1 flex items-center justify-center">
+            <div className="dna">
+              {Array.from({ length: 15 }).map((_, i) => (
+                <div className="link" key={i}><div></div><div></div></div>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
-    </div>
-  </Slide>
+      </main>
 
-  {/* SLIDE 3: Long Distance & Solo */}
-  <Slide>
-    <div className="text-center">
-      <WordSplitText>
-        <h2 className="text-6xl font-bold text-slate-900 mb-12">
-          From <span className="underline decoration-blue-200 underline-offset-8">Long Distance</span> <br />
-          to the <span className="text-blue-600 underline decoration-blue-200 underline-offset-8">Solo Warrior.</span>
-        </h2>
-      </WordSplitText>
-      
-      {/* Unique Floating Icons Layout */}
-      <div className="flex justify-center gap-20 mt-10">
-        <div className="animate-bounce-slow flex flex-col items-center">
-           <div className="w-20 h-20 bg-white shadow-xl rounded-2xl flex items-center justify-center text-3xl">✈️</div>
-           <p className="mt-4 font-bold text-slate-400">Connected</p>
+      {/* TRUST STATS */}
+      <section className="py-28 bg-white">
+        <div className="max-w-5xl mx-auto px-6">
+          <div ref={statsRef} className="bg-blue-600 rounded-3xl px-10 py-16 shadow-2xl">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-12 text-center text-white">
+              <div>
+                <h3 className="text-5xl font-black"><span data-value="50000">0</span>+</h3>
+                <p className="mt-2 text-blue-100">Active Users</p>
+              </div>
+              <div>
+                <h3 className="text-5xl font-black"><span data-value="2000000">0</span>+</h3>
+                <p className="mt-2 text-blue-100">Goals Achieved</p>
+              </div>
+              <div>
+                <h3 className="text-5xl font-black"><span data-value="98">0</span>%</h3>
+                <p className="mt-2 text-blue-100">Satisfaction</p>
+              </div>
+            </div>
+          </div>
+          <div className="mt-16 grid sm:grid-cols-3 gap-8 text-center">
+            <div className="flex items-center justify-center gap-3 text-slate-700 font-semibold">
+              <CircleCheck className="text-xl font-extrabold text-blue-600" /> Clinically inspired tracking
+            </div>
+            <div className="flex items-center justify-center gap-3 text-slate-700 font-semibold">
+              <TrendingUp className="text-blue-600" /> Proven habit consistency
+            </div>
+            <div className="flex items-center justify-center gap-3 text-slate-700 font-semibold">
+              <HeartHandshake className="text-blue-600" /> Trusted by teams & families
+            </div>
+          </div>
         </div>
-        <div className="animate-bounce-slow [animation-delay:0.5s] flex flex-col items-center">
-           <div className="w-20 h-20 bg-white shadow-xl rounded-2xl flex items-center justify-center text-3xl">💪</div>
-           <p className="mt-4 font-bold text-slate-400">Accountable</p>
-        </div>
-      </div>
-    </div>
-  </Slide>
-
-  {/* SLIDE 4: The Finale (Particles) */}
-  <div className="min-w-[100vw] h-full flex items-center justify-center relative overflow-hidden bg-blue-600"> 
-    <ParticleExplosion triggerRef={aboutSectionRef} /> 
-    
-    <div className="text-center z-10 relative"> 
-       <div className="bg-white/10 backdrop-blur-2xl p-20 rounded-full border border-white/20">
-          <HeartHandshake className="w-32 h-32 text-white drop-shadow-[0_0_30px_rgba(255,255,255,0.5)]" />
-          <h2 className="text-white text-4xl font-black mt-8 uppercase tracking-tighter">You're Not Alone.</h2>
-       </div>
-    </div>
-  </div>
-
-  <div className="min-w-[50vw] h-full flex items-center justify-center relative overflow-hidden bg-blue-600"> 
-    <ParticleExplosion triggerRef={aboutSectionRef} /> 
-    
-    
-  </div>
-
-</div>
-        
       </section>
 
-    <HealthPlusSection />
+      {/* ROCKET SECTION */}
+      <section id="anim" className="min-h-screen overflow-hidden relative -mt-px bg-gradient-to-b from-[#275fcf] via-[#1d0269] to-[#1f0269]">
+        <div className="items-center justify-center mb-2">
+          <div className="mb-3">
+            <div className="rocket">
+              <div className="rocket-body">
+                <div className="body"></div>
+                <div className="fin fin-left"></div>
+                <div className="fin fin-right"></div>
+                <div className="window"></div>
+              </div>
+              <div className="exhaust-flame"></div>
+              <ul className="exhaust-fumes">
+                {Array.from({ length: 9 }).map((_, i) => <li key={i}></li>)}
+              </ul>
+              <ul className="star">
+                {Array.from({ length: 7 }).map((_, i) => <li key={i}></li>)}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
 
+      {/* ABOUT HORIZONTAL SCROLL */}
+      <section id="about" ref={aboutSectionRef} className="h-screen overflow-hidden">
+        <div ref={aboutTrackRef} className="flex h-screen w-fit bg-white">
+          <Slide>
+            <div className="relative">
+              <span className="absolute -top-20 -left-10 text-[20rem] font-black text-blue-50/70 select-none -z-10">01</span>
+              <WordSplitText>
+                <h1 className="text-7xl md:text-8xl font-black leading-[0.9] tracking-tighter text-slate-900">
+                  Your <span className="text-blue-600">Wellness</span> <br />is better when <br />
+                  <span className="relative">Shared.
+                    <svg className="absolute -bottom-2 left-0 w-full h-4 text-blue-200" viewBox="0 0 100 10" preserveAspectRatio="none">
+                      <path d="M0 5 Q 25 0 50 5 T 100 5" stroke="currentColor" strokeWidth="4" fill="transparent" />
+                    </svg>
+                  </span>
+                </h1>
+              </WordSplitText>
+            </div>
+          </Slide>
 
+          <Slide>
+            <div className="grid grid-cols-2 gap-10 items-center">
+              <WordSplitText>
+                <h2 className="text-6xl font-bold text-slate-900 leading-tight">
+                  A system for <br /><span className="text-blue-600 italic">families</span> & <br /><span className="text-blue-600">gym trainers.</span>
+                </h2>
+              </WordSplitText>
+              <div className="relative group">
+                <div className="absolute inset-0 bg-blue-700 rounded-[3rem] rotate-3 scale-100 opacity-40 group-hover:rotate-6 border border-blue-600 shadow-3xl shadow-blue-600 transition-transform" />
+                <div className="relative bg-white shadow-xl border border-slate-100 p-10 rounded-[3rem] shadow-2xl">
+                  <div className="flex gap-4 mb-6">
+                    <div className="w-12 h-12 rounded-full bg-blue-100" />
+                    <div className="w-12 h-12 rounded-full bg-blue-200" />
+                    <div className="w-12 h-12 rounded-full bg-blue-600" />
+                  </div>
+                  <p className="text-slate-400 font-medium tracking-widest uppercase text-xs">Syncing Live</p>
+                  <div className="h-2 w-full bg-slate-100 rounded-full mt-4 overflow-hidden">
+                    <div className="h-full bg-blue-600 w-2/3" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Slide>
 
+          <Slide>
+            <div className="text-center">
+              <WordSplitText>
+                <h2 className="text-6xl font-bold text-slate-900 mb-12">
+                  From <span className="underline decoration-blue-200 underline-offset-8">Long Distance</span> <br />
+                  to the <span className="text-blue-600 underline decoration-blue-200 underline-offset-8">Solo Warrior.</span>
+                </h2>
+              </WordSplitText>
+              <div className="flex justify-center gap-20 mt-10">
+                <div className="animate-bounce-slow flex flex-col items-center">
+                  <div className="w-20 h-20 bg-white shadow-xl rounded-2xl flex items-center justify-center text-3xl">✈️</div>
+                  <p className="mt-4 font-bold text-slate-400">Connected</p>
+                </div>
+                <div className="animate-bounce-slow [animation-delay:0.5s] flex flex-col items-center">
+                  <div className="w-20 h-20 bg-white shadow-xl rounded-2xl flex items-center justify-center text-3xl">💪</div>
+                  <p className="mt-4 font-bold text-slate-400">Accountable</p>
+                </div>
+              </div>
+            </div>
+          </Slide>
 
+          <div className="min-w-[100vw] h-full flex items-center justify-center relative overflow-hidden bg-blue-600">
+            <ParticleExplosion triggerRef={aboutSectionRef} />
+            <div className="text-center z-10 relative">
+              <div className="bg-white/10 backdrop-blur-2xl p-20 rounded-full border border-white/20">
+                <HeartHandshake className="w-32 h-32 text-white drop-shadow-[0_0_30px_rgba(255,255,255,0.5)]" />
+                <h2 className="text-white text-4xl font-black mt-8 uppercase tracking-tighter">You're Not Alone.</h2>
+              </div>
+            </div>
+          </div>
 
-      
+          <div className="min-w-[50vw] h-full flex items-center justify-center relative overflow-hidden bg-blue-600">
+            <ParticleExplosion triggerRef={aboutSectionRef} />
+          </div>
+        </div>
+      </section>
 
+      <HealthPlusSection />
 
- <section id="services" className="py-28 bg-white">
+      {/* SERVICES */}
+      <section id="services" className="py-28 bg-white">
         <div className="max-w-7xl mx-auto px-6">
           <h2 className="text-4xl md:text-6xl font-black text-center mb-16">
             Everything you need to <span className="bg-gradient-to-br from-blue-700 via-blue-500 to-cyan-500 bg-clip-text text-transparent">stay healthy</span>
           </h2>
-
           <div className="grid md:grid-cols-3 mx-5 gap-10">
-            
-          <ServiceCard icon={Utensils} title="Nutrition Scanner">
-            Instantly analyze nutrition and make smarter food choices with our sophisticated AI-powered meal scanner.
-          </ServiceCard>
-
-          <ServiceCard icon={Calendar} title="Diet Calendar">
-            Track and visualize your long-term eating patterns over time to spot macro trends and optimize your full diet plan.
-          </ServiceCard>
-
-          <ServiceCard icon={ChefHat} title="Curated Recipes">
-            Access healthy, customizable recipes tailored to your personal dietary needs with full nutritional breakdowns.
-          </ServiceCard>
-
-          <ServiceCard icon={Droplet} title="Hydration Tracker">
-            Stay consistently hydrated with personalized goals, smart reminders, and dynamic daily water intake tracking.
-          </ServiceCard>
-
-          <ServiceCard icon={Moon} title="Advanced Sleep Log">
-            Log detailed sleep data, analyze cycles, and improve your overall recovery quality with deep nocturnal insights.
-          </ServiceCard>
-
-          <ServiceCard icon={BarChart3} title="Progress Analysis">
-            Visualize shared and individual progress through clean, actionable charts and reports to maintain motivation.
-          </ServiceCard>
+            <ServiceCard icon={Utensils} title="Nutrition Scanner">Instantly analyze nutrition and make smarter food choices with our sophisticated AI-powered meal scanner.</ServiceCard>
+            <ServiceCard icon={Calendar} title="Diet Calendar">Track and visualize your long-term eating patterns over time to spot macro trends and optimize your full diet plan.</ServiceCard>
+            <ServiceCard icon={ChefHat} title="Curated Recipes">Access healthy, customizable recipes tailored to your personal dietary needs with full nutritional breakdowns.</ServiceCard>
+            <ServiceCard icon={Droplet} title="Hydration Tracker">Stay consistently hydrated with personalized goals, smart reminders, and dynamic daily water intake tracking.</ServiceCard>
+            <ServiceCard icon={Moon} title="Advanced Sleep Log">Log detailed sleep data, analyze cycles, and improve your overall recovery quality with deep nocturnal insights.</ServiceCard>
+            <ServiceCard icon={BarChart3} title="Progress Analysis">Visualize shared and individual progress through clean, actionable charts and reports to maintain motivation.</ServiceCard>
           </div>
         </div>
       </section>
-      
 
-
-
-{/* EFFICIENCY SECTION */}
-      <section ref={efficiencySectionRef} className="py-24 min-h-screen bg-blue-50/80  px-6">
+      {/* EFFICIENCY */}
+      <section ref={efficiencySectionRef} className="py-24 min-h-screen bg-blue-50/80 px-6">
         <div className="max-w-7xl mx-6 flex flex-col md:flex-row items-center gap-12">
           <div className="flex-1">
-            <h2 className="text-4xl md:text-7xl font-black tracking-tighter">Increase your <br/><span className="text-blue-600">efficiency</span> and productivity.</h2>
+            <h2 className="text-4xl md:text-7xl font-black tracking-tighter">Increase your <br /><span className="text-blue-600">efficiency</span> and productivity.</h2>
             <p className="mt-6 text-xl text-slate-500">Shared goals lead to 40% higher completion rates.</p>
           </div>
           <div className="flex-1 w-full min-h-[300px]">
-            <svg viewBox="0 0 500 300" className="w-full drop-shadow-2xl " >
+            <svg viewBox="0 0 500 300" className="w-full drop-shadow-2xl">
               <defs>
-    <filter id="blueGlow" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="3" result="blur" />
-      <feMerge>
-        <feMergeNode in="blur" />
-        <feMergeNode in="SourceGraphic" />
-      </feMerge>
-    </filter>
-  </defs>
+                <filter id="blueGlow" x="-50%" y="-50%" width="200%" height="200%">
+                  <feGaussianBlur stdDeviation="3" result="blur" />
+                  <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+                </filter>
+              </defs>
               <path ref={chartPathRef} d="M10,280 L100,240 L200,260 L300,120 L400,140 L490,20" fill="none" stroke="#2563eb" strokeWidth="8" filter="url(#blueGlow)" strokeLinecap="round" />
             </svg>
           </div>
         </div>
       </section>
 
-
-
-
-{/* ================= JOURNEY (NEW) ================= */}
-<section className="py-28 ">
-  <div className="max-w-6xl text-center items-center justify-center  mx-auto px-6 ">
-
-    <h2 className="text-4xl lg:text-6xl font-black text-center mb-16">
-      Your Wellness <span className="text-blue-600">Journey</span>
-    </h2>
-
-    <div className="grid md:grid-cols-3 gap-10">
-
-      <div className="p-8 rounded-3xl border border-blue-500 bg-white shadow-xl hover:scale-105 border  hover:border-blue">
-        <h3 className="text-xl font-bold mb-3">Start Tracking</h3>
-        <p className="text-slate-600">
-          Log meals, sleep, hydration, and daily habits effortlessly.
-        </p>
-      </div>
-
-      <div className="p-8 rounded-3xl bg-white border border-blue-500  shadow-xl hover:scale-105 border hover:border-blue">
-        <h3 className="text-xl font-bold mb-3">Share Progress</h3>
-        <p className="text-slate-600">
-          Stay accountable with family, trainers, or partners.
-        </p>
-      </div>
-
-      <div className="p-8 rounded-3xl bg-white border border-blue-500  shadow-xl hover:scale-105 border hover:border-blue">
-        <h3 className="text-xl font-bold mb-3">Improve Together</h3>
-        <p className="text-slate-600">
-          Analyze patterns and grow healthier as a team.
-        </p>
-      </div>
-
-    </div><br></br><br></br>
-    <div className="flex justify-center">
-  <div className="max-w-4xl rounded-2xl shadow-lg bg-blue-600 px-8 py-4">
-    <p className="text-center text-lg font-bold text-white">
-      Secure    •    Private    •    No spam    •    No ads
-    </p>
-  </div>
-</div>
-
-
-  </div>
-</section>
-
-
-
-
-
-      {/* ================= CONTACT ================= */}
-      <section
-        id="contact"
-        className="py-20 bg-blue-600 text-center"
-      >
-        <div className="max-w-4xl mx-auto px-6">
-          <h2 className="text-4xl font-extrabold text-white mb-4">
-            Connect with HealthPlus
+      {/* JOURNEY */}
+      <section className="py-28">
+        <div className="max-w-6xl text-center items-center justify-center mx-auto px-6">
+          <h2 className="text-4xl lg:text-6xl font-black text-center mb-16">
+            Your Wellness <span className="text-blue-600">Journey</span>
           </h2>
-          <p className="text-xl text-slate-100 mb-8">
-            Ready to integrate shared wellness? Reach out to our team for demos, support, or partnership inquiries.
-          </p>
-
-          <div className="flex justify-center flex-wrap gap-6 text-lg font-semibold">
-            <a 
-              href="mailto:sharmahazel310@gmail.com"
-              className="px-6 py-2 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 transition duration-300 hover:bg-blue-100 hover:shadow-lg transform "
-            >
-              📧 Email Us
-            </a>
-            <a 
-              href="https://github.com/HazelSharmaCoderHZ"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-6 py-2 rounded-xl bg-slate-100 border border-slate-300 text-slate-700 transition duration-300 hover:bg-slate-200 hover:shadow-lg transform "
-            >
-              🖥 GitHub
-            </a>
-            <a 
-              href="https://www.linkedin.com/in/hazelsharma-it/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-6 py-2 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 transition duration-300 hover:bg-blue-100 hover:shadow-lg transform "
-            >
-              ↗ LinkedIn Profile
-            </a>
+          <div className="grid md:grid-cols-3 gap-10">
+            <div className="p-8 rounded-3xl border border-blue-500 bg-white shadow-xl hover:scale-105 hover:border-blue transition-transform">
+              <h3 className="text-xl font-bold mb-3">Start Tracking</h3>
+              <p className="text-slate-600">Log meals, sleep, hydration, and daily habits effortlessly.</p>
+            </div>
+            <div className="p-8 rounded-3xl bg-white border border-blue-500 shadow-xl hover:scale-105 hover:border-blue transition-transform">
+              <h3 className="text-xl font-bold mb-3">Share Progress</h3>
+              <p className="text-slate-600">Stay accountable with family, trainers, or partners.</p>
+            </div>
+            <div className="p-8 rounded-3xl bg-white border border-blue-500 shadow-xl hover:scale-105 hover:border-blue transition-transform">
+              <h3 className="text-xl font-bold mb-3">Improve Together</h3>
+              <p className="text-slate-600">Analyze patterns and grow healthier as a team.</p>
+            </div>
           </div>
-
-          <p className="mt-6 text-slate-100 text-sm">
-            HealthPlus © 2025 | All Rights Reserved.
-          </p>
+          <br /><br />
+          <div className="flex justify-center">
+            <div className="max-w-4xl rounded-2xl shadow-lg bg-blue-600 px-8 py-4">
+              <p className="text-center text-lg font-bold text-white">Secure • Private • No spam • No ads</p>
+            </div>
+          </div>
         </div>
       </section>
 
+      {/* CONTACT */}
+      <section id="contact" className="py-20 bg-blue-600 text-center">
+        <div className="max-w-4xl mx-auto px-6">
+          <h2 className="text-4xl font-extrabold text-white mb-4">Connect with HealthPlus</h2>
+          <p className="text-xl text-slate-100 mb-8">Ready to integrate shared wellness? Reach out to our team for demos, support, or partnership inquiries.</p>
+          <div className="flex justify-center flex-wrap gap-6 text-lg font-semibold">
+            <a href="mailto:sharmahazel310@gmail.com" className="px-6 py-2 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 transition duration-300 hover:bg-blue-100 hover:shadow-lg">📧 Email Us</a>
+            <a href="https://github.com/HazelSharmaCoderHZ" target="_blank" rel="noopener noreferrer" className="px-6 py-2 rounded-xl bg-slate-100 border border-slate-300 text-slate-700 transition duration-300 hover:bg-slate-200 hover:shadow-lg">🖥 GitHub</a>
+            <a href="https://www.linkedin.com/in/hazelsharma-it/" target="_blank" rel="noopener noreferrer" className="px-6 py-2 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 transition duration-300 hover:bg-blue-100 hover:shadow-lg">↗ LinkedIn Profile</a>
+          </div>
+          <p className="mt-6 text-slate-100 text-sm">HealthPlus © 2025 | All Rights Reserved.</p>
+        </div>
+      </section>
     </div>
   );
 }
@@ -859,50 +509,20 @@ ScrollTrigger.refresh();
 function Slide({ children, className = "" }) {
   return (
     <div className={`min-w-[100vw] h-full flex items-center justify-center px-20 relative overflow-hidden ${className}`}>
-      {/* Soft background glow for each slide */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-50/50 rounded-full blur-[120px] -z-10" />
-      <div className="max-w-6xl w-full">
-        {children}
-      </div>
+      <div className="max-w-6xl w-full">{children}</div>
     </div>
   );
 }
 
-// --- Component for Professional Service Cards (Unchanged) ---
 function ServiceCard({ icon: Icon, title, children }) {
   return (
     <div className="group p-10 rounded-3xl bg-white border border-blue-500 hover:scale-105 hover:border-blue-600 shadow shadow-xl shadow-blue-50 transition">
-  <div className="mb-6 w-14 h-14 flex items-center justify-center rounded-full 
-                  bg-blue-100 text-blue-600 
-                  group-hover:scale-110 transition">
-   <Icon />
+      <div className="mb-6 w-14 h-14 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 group-hover:scale-110 transition">
+        <Icon />
       </div>
       <h3 className="text-xl font-bold mb-3">{title}</h3>
       <p className="text-slate-600">{children}</p>
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*<div className="min-w-[100vw] h-full flex items-center justify-center bg-white">
-            <div className="flex items-center gap-6">
-  <div className="loader"></div>
-  <div className="loader"></div>
-  <div className="loader"></div>
-  <div className="loader"></div>
-  </div>
-          </div>
-          */

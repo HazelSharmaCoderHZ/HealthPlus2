@@ -1,41 +1,91 @@
 "use client";
-import { collection, addDoc, serverTimestamp, getDocs, doc } from "firebase/firestore";
+
+import {
+  collection, addDoc, serverTimestamp, getDocs, doc,
+  deleteDoc, updateDoc,
+} from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { deleteDoc } from "firebase/firestore";
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import TopMenuButton from "../../../components/TopMenuButton";
-import { updateDoc } from "firebase/firestore";
 import {
-  getTeam,
-  getTeamMembers,
-  requestToJoinTeam,
-  approveMember,
-  removeMember,
+  getTeam, getTeamMembers, requestToJoinTeam, approveMember, removeMember,
 } from "@/lib/teams";
+import {
+  Users, Megaphone, BarChart3, Shield, Clock, Trash2,
+  CheckCircle2, ChevronLeft, Copy, Check, UserPlus, LogOut,
+} from "lucide-react";
 
+// ── Pulse loader ──────────────────────────────────────────
+function PulseLoader({ label = "Loading…" }) {
+  return (
+    <div className="flex flex-col items-center gap-3 py-16">
+      <div className="flex items-center gap-2">
+        {[0, 1, 2].map((i) => (
+          <span
+            key={i}
+            className="w-3 h-3 rounded-full bg-blue-500 animate-bounce"
+            style={{ animationDelay: `${i * 0.15}s` }}
+          />
+        ))}
+      </div>
+      <p className="text-sm text-slate-400">{label}</p>
+    </div>
+  );
+}
+
+// ── Card ──────────────────────────────────────────────────
+function Card({ children, className = "" }) {
+  return (
+    <div className={`bg-white rounded-2xl border border-blue-100 shadow-sm p-6 ${className}`}>
+      {children}
+    </div>
+  );
+}
+
+// ── Role badge ────────────────────────────────────────────
+function RoleBadge({ role }) {
+  return role === "admin"
+    ? <span className="inline-flex items-center gap-1 text-xs font-semibold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-full"><Shield className="w-3 h-3" /> admin</span>
+    : <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">member</span>;
+}
+
+// ── Status badge ──────────────────────────────────────────
+function StatusBadge({ status }) {
+  const map = {
+    approved: "bg-green-100 text-green-700",
+    pending:  "bg-yellow-100 text-yellow-700",
+    rejected: "bg-red-100 text-red-600",
+  };
+  return (
+    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${map[status] ?? "bg-slate-100 text-slate-600"}`}>
+      {status}
+    </span>
+  );
+}
+
+// ── Main page ─────────────────────────────────────────────
 export default function TeamPage() {
   const { user } = useAuth();
   const params = useParams();
   const teamId = params?.teamID || params?.teamId;
   const router = useRouter();
-  const [username, setUsername] = useState("");
 
-  
   const [team, setTeam] = useState(null);
   const [members, setMembers] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState(null);
   const [announcement, setAnnouncement] = useState("");
-const [announcements, setAnnouncements] = useState([]);
-
+  const [sendingAnn, setSendingAnn] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!teamId) return;
     fetchAll();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [teamId, user?.uid]);
 
   async function fetchAll() {
@@ -46,23 +96,24 @@ const [announcements, setAnnouncements] = useState([]);
       setTeam(t);
       const mems = await getTeamMembers(teamId);
       setMembers(mems);
-      const annSnap = await getDocs(
-  collection(db, "teams", teamId, "announcements")
-);
-setAnnouncements(
-  annSnap.docs.map(d => ({ id: d.id, ...d.data() }))
-);
-
+      const annSnap = await getDocs(collection(db, "teams", teamId, "announcements"));
+      // Sort newest first
+      const anns = annSnap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => (b.createdAt?.seconds ?? 0) - (a.createdAt?.seconds ?? 0));
+      setAnnouncements(anns);
     } catch (e) {
       console.error("fetchAll:", e);
       setError(e?.message || "Failed to load team");
     } finally {
       setLoading(false);
     }
-    
   }
 
-  const myMembership = useMemo(() => members.find((m) => m.userId === user?.uid) || null, [members, user?.uid]);
+  const myMembership = useMemo(
+    () => members.find((m) => m.userId === user?.uid) || null,
+    [members, user?.uid]
+  );
   const amAdmin = myMembership?.role === "admin" && myMembership?.status === "approved";
   const amApprovedMember = myMembership?.status === "approved";
 
@@ -70,43 +121,15 @@ setAnnouncements(
     setActionLoading(true);
     try {
       await requestToJoinTeam({ teamId });
-      alert("Request sent.");
+      alert("Request sent — pending admin approval.");
       await fetchAll();
-      
     } catch (e) {
-      console.error("requestToJoin:", e);
       alert(e?.message || "Failed to request to join");
     } finally {
       setActionLoading(false);
     }
   }
 
-  async function deleteAnnouncement(id) {
-  if (!confirm("Delete this announcement?")) return;
-
-  try {
-    await deleteDoc(
-      doc(db, "teams", teamId, "announcements", id)
-    );
-    fetchAll();
-  } catch (e) {
-    alert("Failed to delete");
-  }
-}
-
-  async function markAsRead(announcementId) {
-  if (!user?.uid) return;
-
-  const ref = doc(db, "teams", teamId, "announcements", announcementId);
-
-  try {
-    await updateDoc(ref, {
-      [`readBy.${user.uid}`]: true,
-    });
-  } catch (e) {
-    console.warn("Read receipt failed");
-  }
-}
   async function handleApprove(userId) {
     if (!confirm("Approve this member?")) return;
     setActionLoading(true);
@@ -114,7 +137,6 @@ setAnnouncements(
       await approveMember({ teamId, userId });
       await fetchAll();
     } catch (e) {
-      console.error("approve:", e);
       alert(e?.message || "Failed to approve");
     } finally {
       setActionLoading(false);
@@ -123,207 +145,322 @@ setAnnouncements(
 
   async function handleRemove(userId) {
     const self = user?.uid === userId;
-    const ok = confirm(self ? "Leave the team?" : "Remove this member?");
-    if (!ok) return;
+    if (!confirm(self ? "Leave the team?" : "Remove this member?")) return;
     setActionLoading(true);
     try {
       await removeMember({ teamId, userId });
-      if (self) {
-        router.push("/groups");
-      } else {
-        await fetchAll();
-      }
+      if (self) router.push("/groups");
+      else await fetchAll();
     } catch (e) {
-      console.error("remove:", e);
       alert(e?.message || "Failed to remove member");
     } finally {
       setActionLoading(false);
     }
   }
+
   async function sendAnnouncement() {
-  if (!user?.uid) return;
-  if (!announcement.trim()) return;
-
-  try {
-    await addDoc(collection(db, "teams", teamId, "announcements"), {
-      text: announcement.trim(),
-      createdBy: user.uid,
-      createdAt: serverTimestamp(),
-      readBy: {
-        [user.uid]: true, // admin has read it
-      },
-    });
-
-    setAnnouncement("");
-    fetchAll();
-  } catch (e) {
-    console.error("Announcement error:", e);
-    alert("Failed to send announcement");
+    if (!user?.uid || !announcement.trim()) return;
+    setSendingAnn(true);
+    try {
+      await addDoc(collection(db, "teams", teamId, "announcements"), {
+        text: announcement.trim(),
+        createdBy: user.uid,
+        createdAt: serverTimestamp(),
+        readBy: { [user.uid]: true },
+      });
+      setAnnouncement("");
+      fetchAll();
+    } catch (e) {
+      console.error("Announcement error:", e);
+      alert("Failed to send announcement");
+    } finally {
+      setSendingAnn(false);
+    }
   }
-}
 
-
-
-
-  if (!teamId) {
-    return <div className="p-6">Missing team id</div>;
+  async function deleteAnnouncement(id) {
+    if (!confirm("Delete this announcement?")) return;
+    try {
+      await deleteDoc(doc(db, "teams", teamId, "announcements", id));
+      fetchAll();
+    } catch {
+      alert("Failed to delete");
+    }
   }
+
+  async function markAsRead(announcementId) {
+    if (!user?.uid) return;
+    try {
+      await updateDoc(doc(db, "teams", teamId, "announcements", announcementId), {
+        [`readBy.${user.uid}`]: true,
+      });
+    } catch {
+      // non-critical
+    }
+  }
+
+  function copyInviteCode() {
+    if (!team?.inviteCode) return;
+    navigator.clipboard.writeText(team.inviteCode);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  const approvedMembers = members.filter(m => m.status === "approved");
+  const pendingMembers  = members.filter(m => m.status === "pending");
+
+  if (!teamId) return <div className="p-6">Missing team ID</div>;
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50/60 to-white">
+      <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
         <TopMenuButton />
 
-      <div className="flex items-center justify-between mb-6">
-        <button onClick={() => router.push("/groups")} className="text-sm px-3 py-1 rounded border">
-          ← Back
-        </button>
-        <h1 className="text-2xl font-bold">{team?.name || "Team"}</h1>
-        <div />
-      </div>
-
-      <div className="bg-white p-4 rounded shadow-sm mb-6">
-        {loading ? (
-          <p className="text-sm text-slate-500">Loading…</p>
-        ) : error ? (
-          <p className="text-sm text-red-500">{error}</p>
-        ) : (
-          <>
-            <div className="flex justify-between items-center">
-              <div>
-                {!amApprovedMember ? (
-                <>
-                  <p className="text-sm text-slate-600 mb-2">You are not an approved member of this team.</p>
-                  <button
-                    onClick={handleRequestToJoin}
-                    disabled={actionLoading || myMembership?.status === "pending"}
-                    className="px-3 py-1 rounded bg-blue-600 text-white"
-                  >
-                    {myMembership?.status === "pending" ? "Request pending" : "Request to join"}
-                  </button>
-                </>
-              ) : (
-                <p className="text-sm text-green-600">You are a team member ({myMembership.role}).</p>
-              )}
-              </div>
-              <div className="text-sm text-slate-600">
-                Invite code: <span className="font-medium">{team?.inviteCode}</span>
-              </div>
-            </div>
-
-            
-              
-            
-          </>
-        )}
-        <button
-  onClick={() => router.push(`/groups/${teamId}/stats`)}
-  className="text-sm px-3 py-1 rounded bg-blue-100 text-blue-700"
->
-  View Stats
-</button>
-
-      </div>
-{amAdmin && (
-  <div className="bg-white p-4 rounded shadow-sm mb-6">
-    <h2 className="font-semibold mb-2">Admin Announcement</h2>
-    <textarea
-      value={announcement}
-      onChange={(e) => setAnnouncement(e.target.value)}
-      className="w-full border rounded p-2 mb-2"
-      placeholder="Write a message for the team..."
-    />
-  <button
-  onClick={sendAnnouncement}
-  disabled={!user || !announcement.trim()}
-  className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
->
-  Send
-</button>
-
-  </div>
-)}
-
-{announcements.length > 0 && (
-  <div className="bg-white p-4 rounded shadow-sm mb-6">
-    <h2 className="font-semibold mb-3">📢 Team Announcements</h2>
-
-    <ul className="space-y-3">
-      {announcements.map((a) => {
-        const isRead = a.readBy?.[user?.uid];
-
-        return (
-          <li
-            key={a.id}
-            onMouseEnter={() => markAsRead(a.id)}
-            className={`border rounded p-3 text-sm cursor-pointer
-              ${isRead ? "bg-white" : "bg-blue-50"}`}
+        {/* Header */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => router.push("/groups")}
+            className="p-2 rounded-xl hover:bg-blue-100 text-slate-500 hover:text-blue-700 transition"
           >
-            <div className="flex justify-between items-start">
-              <p className="text-slate-800">{a.text}</p>
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <div className="flex-1">
+            {loading ? (
+              <div className="h-7 w-40 bg-blue-100 rounded-lg animate-pulse" />
+            ) : (
+              <h1 className="text-2xl font-black text-slate-900">{team?.name ?? "Team"}</h1>
+            )}
+            <p className="text-sm text-slate-500 mt-0.5">
+              {approvedMembers.length} member{approvedMembers.length !== 1 ? "s" : ""}
+            </p>
+          </div>
 
-              {amAdmin && (
-                <button
-                  onClick={() => deleteAnnouncement(a.id)}
-                  className="text-xs text-red-600 hover:underline"
-                >
-                  Delete
-                </button>
-              )}
-            </div>
-
-            <div className="mt-2 text-xs text-slate-500 flex justify-between">
-              <span>
-                {a.createdAt?.toDate
-                  ? a.createdAt.toDate().toLocaleString()
-                  : ""}
-              </span>
-
-              <span>
-                {Object.keys(a.readBy || {}).length} read
-              </span>
-            </div>
-          </li>
-        );
-      })}
-    </ul>
-  </div>
-)}
-
-
-      <div className="bg-white p-4 rounded shadow-sm">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-medium">Members ({members.length})</h2>
+          {/* Invite code pill */}
+          {team?.inviteCode && (
+            <button
+              onClick={copyInviteCode}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-blue-200 bg-blue-50 text-blue-700 text-xs font-semibold hover:bg-blue-100 transition"
+            >
+              {copied ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
+              <span className="tracking-widest uppercase">{team.inviteCode}</span>
+            </button>
+          )}
         </div>
 
-        <ul className="space-y-3">
-          {members.map((m) => (
-            <li key={m.userId} className="flex items-center justify-between border rounded p-3">
-            
-  <div>
-  <div className="font-medium text-slate-800">
-    {m.profile?.username || "Anonymous"}
-  </div>
-  <div className="text-sm text-slate-600">
-    {m.profile?.gender || "—"} • {m.profile?.age || "—"} yrs
-  </div>
-</div>
+        {/* Error */}
+        {error && (
+          <div className="rounded-2xl bg-red-50 border border-red-200 px-5 py-4 text-red-700 text-sm">
+            {error}
+          </div>
+        )}
 
-              <div className="flex items-center gap-2">
-                {amAdmin && m.status === "pending" && (
-                  <button onClick={() => handleApprove(m.userId)} className="px-3 py-1 rounded bg-blue-600 text-white">
-                    Approve
-                  </button>
-                )}
+        {loading ? (
+          <PulseLoader label="Loading team data…" />
+        ) : (
+          <>
+            {/* Membership status / join */}
+            {!amApprovedMember && (
+              <Card className="border-yellow-100 bg-yellow-50/60">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="font-semibold text-slate-800 mb-1">
+                      {myMembership?.status === "pending"
+                        ? "⏳ Your request is pending approval"
+                        : "You're not a member of this team yet"}
+                    </p>
+                    <p className="text-sm text-slate-500">
+                      {myMembership?.status === "pending"
+                        ? "An admin will review your request soon."
+                        : "Request to join to see team data and announcements."}
+                    </p>
+                  </div>
+                  {!myMembership && (
+                    <button
+                      onClick={handleRequestToJoin}
+                      disabled={actionLoading}
+                      className="shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition disabled:opacity-50"
+                    >
+                      <UserPlus className="w-4 h-4" /> Request to Join
+                    </button>
+                  )}
+                </div>
+              </Card>
+            )}
 
-                {(amAdmin || user?.uid === m.userId) && (
-                  <button onClick={() => handleRemove(m.userId)} className="px-3 py-1 rounded border">
-                    {user?.uid === m.userId ? "Leave" : "Remove"}
-                  </button>
-                )}
-              </div>
-            </li>
-          ))}
-        </ul>
+            {/* View Stats button */}
+            {amApprovedMember && (
+              <button
+                onClick={() => router.push(`/groups/${teamId}/stats`)}
+                className="w-full flex items-center justify-between px-5 py-4 rounded-2xl border border-blue-200 bg-white hover:bg-blue-50 transition shadow-sm group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-blue-100 flex items-center justify-center">
+                    <BarChart3 className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-semibold text-slate-800">Team Health Stats</p>
+                    <p className="text-xs text-slate-500">View shared sleep & nutrition data</p>
+                  </div>
+                </div>
+                <ChevronLeft className="w-5 h-5 text-slate-300 group-hover:text-blue-500 rotate-180 transition" />
+              </button>
+            )}
+
+            {/* Admin: compose announcement */}
+            {amAdmin && (
+              <Card>
+                <h2 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                  <Megaphone className="w-4 h-4 text-blue-600" /> Post Announcement
+                </h2>
+                <textarea
+                  value={announcement}
+                  onChange={(e) => setAnnouncement(e.target.value)}
+                  rows={3}
+                  className="w-full border border-blue-100 rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-400 bg-blue-50/40 placeholder:text-slate-400"
+                  placeholder="Write a message for your team…"
+                />
+                <button
+                  onClick={sendAnnouncement}
+                  disabled={sendingAnn || !announcement.trim()}
+                  className="mt-3 flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {sendingAnn ? (
+                    <><span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> Sending…</>
+                  ) : (
+                    <><Megaphone className="w-4 h-4" /> Send to Team</>
+                  )}
+                </button>
+              </Card>
+            )}
+
+            {/* Announcements feed */}
+            {announcements.length > 0 && (
+              <Card>
+                <h2 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                  📢 Announcements
+                  <span className="ml-auto text-xs bg-blue-100 text-blue-700 font-semibold px-2 py-0.5 rounded-full">{announcements.length}</span>
+                </h2>
+                <ul className="space-y-3">
+                  {announcements.map((a) => {
+                    const isRead = !!a.readBy?.[user?.uid];
+                    const readCount = Object.keys(a.readBy ?? {}).length;
+                    return (
+                      <li
+                        key={a.id}
+                        onMouseEnter={() => !isRead && markAsRead(a.id)}
+                        className={`rounded-xl border p-4 transition ${isRead ? "bg-white border-slate-100" : "bg-blue-50 border-blue-200"}`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1">
+                            {!isRead && (
+                              <span className="inline-block w-2 h-2 rounded-full bg-blue-500 mr-2 mt-1.5 float-left" />
+                            )}
+                            <p className="text-slate-800 text-sm leading-relaxed">{a.text}</p>
+                          </div>
+                          {amAdmin && (
+                            <button
+                              onClick={() => deleteAnnouncement(a.id)}
+                              className="shrink-0 p-1.5 rounded-lg hover:bg-red-50 text-slate-300 hover:text-red-500 transition"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                        <div className="mt-2 flex items-center gap-3 text-xs text-slate-400">
+                          <Clock className="w-3 h-3" />
+                          <span>
+                            {a.createdAt?.toDate
+                              ? a.createdAt.toDate().toLocaleString()
+                              : "Just now"}
+                          </span>
+                          <span className="ml-auto flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3 text-green-500" />
+                            {readCount} read
+                          </span>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </Card>
+            )}
+
+            {/* Pending approvals (admin only) */}
+            {amAdmin && pendingMembers.length > 0 && (
+              <Card className="border-yellow-100">
+                <h2 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                  <UserPlus className="w-4 h-4 text-yellow-600" /> Pending Requests
+                  <span className="ml-auto text-xs bg-yellow-100 text-yellow-700 font-semibold px-2 py-0.5 rounded-full">{pendingMembers.length}</span>
+                </h2>
+                <ul className="space-y-3">
+                  {pendingMembers.map((m) => (
+                    <li key={m.userId} className="flex items-center justify-between p-4 rounded-xl border border-yellow-100 bg-yellow-50/40">
+                      <div>
+                        <p className="font-semibold text-slate-800">{m.profile?.username || "Anonymous"}</p>
+                        <p className="text-xs text-slate-500">{m.profile?.gender || "—"} · {m.profile?.age || "—"} yrs</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleApprove(m.userId)}
+                          disabled={actionLoading}
+                          className="px-3 py-1.5 rounded-xl bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 transition disabled:opacity-50"
+                        >
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => handleRemove(m.userId)}
+                          disabled={actionLoading}
+                          className="px-3 py-1.5 rounded-xl border border-red-200 text-red-600 text-xs font-semibold hover:bg-red-50 transition disabled:opacity-50"
+                        >
+                          Decline
+                        </button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            )}
+
+            {/* Members list */}
+            <Card>
+              <h2 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                <Users className="w-4 h-4 text-blue-600" /> Members
+                <span className="ml-auto text-xs bg-blue-100 text-blue-700 font-semibold px-2 py-0.5 rounded-full">{approvedMembers.length}</span>
+              </h2>
+              <ul className="space-y-3">
+                {approvedMembers.map((m) => (
+                  <li key={m.userId} className="flex items-center justify-between p-4 rounded-xl border border-slate-100 hover:border-blue-200 hover:bg-blue-50/30 transition">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-700 flex items-center justify-center text-white font-black text-sm">
+                        {(m.profile?.username || "?")[0].toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-slate-800">{m.profile?.username || "Anonymous"}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <RoleBadge role={m.role} />
+                          <span className="text-xs text-slate-400">{m.profile?.gender || "—"} · {m.profile?.age || "—"} yrs</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      {(amAdmin || user?.uid === m.userId) && (
+                        <button
+                          onClick={() => handleRemove(m.userId)}
+                          disabled={actionLoading}
+                          className="flex items-center gap-1 px-3 py-1.5 rounded-xl border border-slate-200 text-slate-500 text-xs font-medium hover:border-red-200 hover:text-red-600 hover:bg-red-50 transition disabled:opacity-50"
+                        >
+                          {user?.uid === m.userId
+                            ? <><LogOut className="w-3 h-3" /> Leave</>
+                            : <><Trash2 className="w-3 h-3" /> Remove</>}
+                        </button>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          </>
+        )}
       </div>
     </div>
   );
