@@ -1,53 +1,72 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import TopMenuButton from "../../components/TopMenuButton";
-import { MessageCircle } from "lucide-react";
-import ThemeToggle from "components/ThemeToggle";
 
 export default function ChatbotPage() {
   const [messages, setMessages] = useState([
-    { sender: "bot", text: "Hi! I’m HealthBot 🤖. How can I assist you today?" }
+    { sender: "bot", text: "Hi! I'm HealthBot. How can I assist you today?" },
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
-  // Scroll to bottom on new message
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Handle sending a message
   const handleSend = async () => {
-    if (!input.trim()) return;
+    const message = input.trim();
+    if (!message || loading) return;
 
-    const userMessage = { sender: "user", text: input };
-    setMessages((prev) => [...prev, userMessage]);
+    setMessages((prev) => [...prev, { sender: "user", text: message }]);
     setInput("");
     setLoading(true);
 
     try {
-      // Call Next.js API route -> Ollama
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: input }),
+        body: JSON.stringify({ message }),
       });
 
-      if (!res.ok) throw new Error("API error");
+      if (!res.ok) throw new Error("HealthBot failed.");
 
-      const data = await res.json();
-      const botMessage = { sender: "bot", text: data.reply || "⚠️ No response." };
-      setMessages((prev) => [...prev, botMessage]);
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let botText = "";
+
+      setMessages((prev) => [...prev, { sender: "bot", text: "" }]);
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+
+        for (const line of chunk.split("\n")) {
+          if (!line.trim()) continue;
+
+          try {
+            const json = JSON.parse(line);
+            botText += json.response || "";
+          } catch {
+            botText += line;
+          }
+        }
+
+        setMessages((prev) => {
+          const updated = [...prev];
+          updated[updated.length - 1].text = botText || "Thinking...";
+          return updated;
+        });
+      }
     } catch (error) {
-      console.error("Chatbot error:", error);
-      const errorMsg = {
-        sender: "bot",
-        text: "⚠️ Oops! Something went wrong connecting to HealthBot.",
-      };
-      setMessages((prev) => [...prev, errorMsg]);
+      setMessages((prev) => [
+        ...prev,
+        { sender: "bot", text: "⚠️ Something went wrong. Try again." },
+      ]);
     } finally {
       setLoading(false);
     }
@@ -58,82 +77,82 @@ export default function ChatbotPage() {
   };
 
   return (
-    <main
-      className="min-h-screen flex flex-col items-center justify-center
-      bg-gradient-to-tr from-indigo-900 via-purple-900 to-cyan-900 
-      dark:from-indigo-400 dark:via-purple-400 dark:to-cyan-200 
-      relative overflow-hidden p-6"
-    >
-      <div className="absolute top-4 right-4 p-3 z-50">
-        <ThemeToggle />
-      </div>
+    <main className="relative min-h-screen flex flex-col items-center bg-gradient-to-br from-blue-50 via-white to-blue-100 px-6 pt-20 pb-10 overflow-hidden">
 
-      {/* Floating Menu Button */}
       <TopMenuButton />
 
-      {/* Background effects */}
-      <div className="absolute -top-48 -left-20 w-96 h-96 bg-purple-800 rounded-full blur-3xl opacity-30 animate-pulse"></div>
-      <div className="absolute -bottom-38 -right-20 w-[28rem] h-[28rem] bg-indigo-800 rounded-full blur-3xl opacity-30 animate-pulse"></div>
+      {/* 🔵 Background glow */}
+      <div className="absolute -left-20 -top-40 h-96 w-96 rounded-full bg-blue-200/40 blur-3xl" />
+      <div className="absolute -bottom-40 -right-20 h-[28rem] w-[28rem] rounded-full bg-blue-300/30 blur-3xl" />
 
-      {/* Chat container */}
+      {/* 🏷️ PAGE HEADER */}
+      <div className="text-center mb-6 z-10">
+        <h1 className="text-4xl font-extrabold text-blue-800">
+          HealthBot
+        </h1>
+        <p className="text-gray-600 text-sm">
+          Your AI health assistant
+        </p>
+      </div>
+
+      {/* 💬 CHAT BOX */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
+        initial={{ opacity: 0, scale: 0.96 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.6 }}
-        className="relative z-10 flex flex-col w-full max-w-[52rem] h-[80vh] 
-        bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] 
-        from-purple-800/40 dark:from-purple-800 
-        via-indigo-900/80 to-black/95 dark:bg-violet-600/40 
-        backdrop-blur-lg border border-white/20 
-        dark:border-purple-800/80 rounded-2xl shadow-2xl overflow-hidden"
+        className="relative z-10 flex w-full max-w-2xl flex-col rounded-3xl border border-blue-100 bg-white/70 shadow-xl backdrop-blur-xl h-[65vh] min-h-[480px]"
       >
-        {/* Header */}
-        <div className="flex items-center space-x-3 p-4 
-        bg-gradient-to-r from-gray-200/10 to-indigo-800/20 
-        dark:from-gray-400/20 dark:to-indigo-400/20 
-        border-b border-white/20">
-          <MessageCircle className="text-cyan-300" size={24} />
-          <h1 className="text-white text-xl font-semibold">HealthBot 🤖</h1>
+
+        {/* HEADER */}
+        <div className="flex items-center gap-3 border-b border-blue-100 p-4 bg-white/60">
+          <div className="w-9 h-9 flex items-center justify-center rounded-full bg-blue-600 text-white">
+            🤖
+          </div>
+          <span className="text-blue-800 font-semibold">
+            HealthBot Assistant
+          </span>
         </div>
 
-        {/* Messages */}
-        <div className="flex-1 p-4 overflow-y-auto flex flex-col space-y-4">
+        {/* MESSAGES */}
+        <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
+
           {messages.map((msg, i) => (
             <motion.div
               key={i}
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              className={`max-w-[75%] px-4 py-3 rounded-xl border border-white/30 break-words ${
+              className={`max-w-[75%] px-4 py-2 rounded-xl text-sm ${
                 msg.sender === "user"
-                  ? "self-end bg-cyan-500 text-white"
-                  : "self-start bg-purple-700/80 text-white"
+                  ? "self-end bg-blue-600 text-white"
+                  : "self-start bg-blue-50 text-gray-700"
               }`}
             >
               {msg.text}
             </motion.div>
           ))}
-          {loading && ( <div className="self-start px-4 py-2 text-sm text-gray-300"> Typing... </div> )}
+
+          {loading && (
+            <div className="text-blue-600 text-sm ">
+              Thinking...
+            </div>
+          )}
+
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input */}
-        <div className="flex p-4 bg-gradient-to-r from-gray-200/10 to-indigo-800/20 
-        dark:from-gray-400/20 dark:to-indigo-400/20 border-t border-white/20">
+        {/* INPUT */}
+        <div className="flex border-t border-blue-100 p-3 bg-white/80">
           <input
-            type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyPress}
-            placeholder="Type your message..."
-            className="flex-1 px-4 py-2 rounded-l-xl bg-white/20 text-white 
-            placeholder-white/70 focus:outline-none focus:ring-1 
-            focus:ring-cyan-400 transition"
+            placeholder="Ask anything about your health..."
+            className="flex-1 px-3 py-2 border border-blue-200 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm"
           />
+
           <button
             onClick={handleSend}
             disabled={loading}
-            className="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 
-            disabled:bg-cyan-300 rounded-r-xl font-semibold text-white transition"
+            className="px-4 bg-blue-600 text-white rounded-r-lg hover:bg-blue-700 transition text-sm"
           >
             {loading ? "..." : "Send"}
           </button>
