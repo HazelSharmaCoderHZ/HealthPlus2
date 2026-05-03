@@ -218,146 +218,156 @@ export default function KnowYourFoodComparison() {
   );
 
   return (
-    <main className="min-h-screen bg-white text-slate-800">
-      <TopMenuButton />
+    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 text-slate-800 relative overflow-hidden">
 
-      <div className="max-w-6xl mx-auto px-4 pt-24 pb-12">
-        <header className="text-center mb-10">
-          <h1 className="text-4xl font-extrabold text-blue-600">
-            Know Your Food
-          </h1>
-          <p className="text-slate-600 mt-2">
-            Check nutrition for any food & compare two items easily.
-          </p>
-        </header>
+  {/* 🔵 BACKGROUND GLOW */}
+  <div className="absolute w-[400px] h-[400px] bg-blue-200/40 blur-3xl rounded-full top-[-100px] left-[-100px]" />
+  <div className="absolute w-[300px] h-[300px] bg-blue-300/30 blur-3xl rounded-full bottom-[-80px] right-[-80px]" />
 
-        <section className="bg-blue-50 border border-blue-100 rounded-3xl p-8 shadow-sm">
-          <div className="flex flex-col md:flex-row gap-10 justify-between">
-            {/* FOOD 1 */}
-            <div className="flex flex-col items-start w-full">
-              <h2 className="text-xl font-semibold text-blue-700 mb-2">
-                First food
-              </h2>
+  <TopMenuButton />
 
-              <input
-                type="text"
-                value={food1}
-                onChange={(e) => setFood1(e.target.value)}
-                placeholder="e.g., 2 eggs, 1 cup dal"
-                className="w-full max-w-md border border-slate-300 rounded-lg px-3 py-2 bg-white text-slate-700 placeholder:text-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-300"
+  <div className="max-w-6xl mx-auto px-6 pt-28 pb-16">
+
+    {/* 🏷️ HEADER */}
+    <header className="text-center mb-14">
+      <h1 className="text-5xl font-extrabold text-blue-700 tracking-tight">
+        Know Your Food
+      </h1>
+      <p className="text-gray-600 mt-3 text-lg">
+        Instantly analyze nutrition & compare foods side by side
+      </p>
+    </header>
+
+    {/* 🔷 MAIN CARD */}
+    <section className="bg-white/70 backdrop-blur-xl border border-blue-100 rounded-3xl p-10 shadow-xl">
+
+      <div className="grid md:grid-cols-2 gap-12">
+
+        {/* 🍽 FOOD 1 */}
+        <div className="flex flex-col gap-4">
+          <h2 className="text-xl font-semibold text-blue-700">
+            First food
+          </h2>
+
+          <input
+            type="text"
+            value={food1}
+            onChange={(e) => setFood1(e.target.value)}
+            placeholder="e.g., 2 eggs, 1 cup dal"
+            className="w-full border border-slate-300 rounded-xl px-4 py-3 bg-white focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
+          />
+
+          <button
+            onClick={() =>
+              fetchNutrition(food1, setResult1, setError1, setLoading1, true)
+            }
+            disabled={loading1}
+            className="bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 shadow-md hover:shadow-lg transition"
+          >
+            {loading1 ? "Checking..." : "Analyze Food"}
+          </button>
+
+          {error1 && <p className="text-red-500 text-sm">{error1}</p>}
+
+          {result1 && (
+            <div className="mt-4">
+              <FoodCard
+                result={result1}
+                logAction={() => logToCalendar(result1)}
               />
-
-              <button
-                onClick={() =>
-                  fetchNutrition(food1, setResult1, setError1, setLoading1, true)
-                }
-                disabled={loading1}
-                className="mt-3 bg-blue-600 text-white px-5 py-2 rounded-lg font-semibold hover:bg-blue-700 transition"
-              >
-                {loading1 ? "Checking..." : "Check"}
-              </button>
-
-              {error1 && <p className="text-red-500 text-sm mt-2">{error1}</p>}
-
-              {result1 && (
-                <div className="mt-4">
-                  <FoodCard
-                    result={result1}
-                    logAction={() => logToCalendar(result1)}
-                  />
-                </div>
-              )}
-
-              {showCompareOption && !showFood2Input && (
-                <button
-                  onClick={() => setShowFood2Input(true)}
-                  className="mt-6 border border-blue-600 text-blue-700 rounded-full px-4 py-2 font-semibold hover:bg-blue-100 transition"
-                >
-                  Compare with another food
-                </button>
-              )}
             </div>
+          )}
 
-            {/* FOOD 2 */}
-            {showFood2Input && (
-              <div className="flex flex-col items-start w-full">
-                <h2 className="text-xl font-semibold text-blue-700 mb-2">
-                  Second food
-                </h2>
+          {showCompareOption && !showFood2Input && (
+            <button
+              onClick={() => setShowFood2Input(true)}
+              className="mt-4 text-blue-700 border border-blue-500 px-4 py-2 rounded-full hover:bg-blue-50 transition font-medium"
+            >
+              + Compare another food
+            </button>
+          )}
+        </div>
 
-                <input
-                  type="text"
-                  value={food2}
-                  onChange={(e) => setFood2(e.target.value)}
-                  placeholder="e.g., 1 cup rice"
-                  className="w-full max-w-md border border-slate-300 rounded-lg px-3 py-2 bg-white text-slate-700 placeholder:text-slate-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-300"
+        {/* 🍽 FOOD 2 */}
+        {showFood2Input && (
+          <div className="flex flex-col gap-4">
+            <h2 className="text-xl font-semibold text-blue-700">
+              Second food
+            </h2>
+
+            <input
+              type="text"
+              value={food2}
+              onChange={(e) => setFood2(e.target.value)}
+              placeholder="e.g., 1 cup rice"
+              className="w-full border border-slate-300 rounded-xl px-4 py-3 bg-white focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition"
+            />
+
+            <button
+              onClick={() =>
+                fetchNutrition(
+                  food2,
+                  setResult2,
+                  setError2,
+                  setLoading2,
+                  false
+                )
+              }
+              disabled={loading2}
+              className="bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 shadow-md hover:shadow-lg transition"
+            >
+              {loading2 ? "Checking..." : "Analyze Food"}
+            </button>
+
+            {error2 && <p className="text-red-500 text-sm">{error2}</p>}
+
+            {result2 && (
+              <div className="mt-4">
+                <FoodCard
+                  result={result2}
+                  logAction={() => logToCalendar(result2)}
                 />
-
-                <button
-                  onClick={() =>
-                    fetchNutrition(
-                      food2,
-                      setResult2,
-                      setError2,
-                      setLoading2,
-                      false
-                    )
-                  }
-                  disabled={loading2}
-                  className="mt-3 bg-blue-600 text-white px-5 py-2 rounded-lg font-semibold hover:bg-blue-700 transition"
-                >
-                  {loading2 ? "Checking..." : "Check"}
-                </button>
-
-                {error2 && (
-                  <p className="text-red-500 text-sm mt-2">{error2}</p>
-                )}
-
-                {result2 && (
-                  <div className="mt-4">
-                    <FoodCard
-                      result={result2}
-                      logAction={() => logToCalendar(result2)}
-                    />
-                  </div>
-                )}
               </div>
             )}
           </div>
-
-          {/* COMPARISON CHART */}
-          {result1 && result2 && (
-            <div className="mt-12">
-              <h3 className="text-2xl font-bold text-blue-700 text-center mb-4">
-                Comparison Chart
-              </h3>
-
-              <div className="w-full h-80 border border-slate-200 bg-white rounded-xl p-4 shadow-sm">
-                <ResponsiveContainer>
-                  <BarChart data={getComparisonData()}>
-                    <XAxis dataKey="nutrient" stroke="#1e3a8a" />
-                    <YAxis stroke="#1e3a8a" />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="Food1" fill={BAR_COLORS[0]} barSize={40} />
-                    <Bar dataKey="Food2" fill={BAR_COLORS[1]} barSize={40} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-          )}
-        </section>
-
-        {/* BACK BUTTON */}
-        <div className="flex justify-center mt-10">
-          <button
-            onClick={() => router.back()}
-            className="px-5 py-2 rounded-full border border-blue-600 text-blue-700 font-semibold hover:bg-blue-50 transition"
-          >
-            ⬅ Back
-          </button>
-        </div>
+        )}
       </div>
-    </main>
+
+      {/* 📊 COMPARISON */}
+      {result1 && result2 && (
+        <div className="mt-16">
+          <h3 className="text-3xl font-bold text-blue-700 text-center mb-6">
+            Nutrition Comparison
+          </h3>
+
+          <div className="w-full h-80 bg-white rounded-2xl border border-blue-100 shadow-md p-6">
+            <ResponsiveContainer>
+              <BarChart data={getComparisonData()}>
+                <XAxis dataKey="nutrient" stroke="#1e3a8a" />
+                <YAxis stroke="#1e3a8a" />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="Food1" fill="#2563eb" barSize={35} />
+                <Bar dataKey="Food2" fill="#1e3a8a" barSize={35} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
+
+    </section>
+
+    {/* 🔙 BACK */}
+    <div className="flex justify-center mt-12">
+      <button
+        onClick={() => router.back()}
+        className="px-6 py-2 rounded-full border border-blue-600 text-blue-700 font-semibold hover:bg-blue-50 transition"
+      >
+        ⬅ Back
+      </button>
+    </div>
+
+  </div>
+</main>
   );
 }

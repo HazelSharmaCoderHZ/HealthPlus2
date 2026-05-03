@@ -133,8 +133,8 @@ const router = useRouter();
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12 relative text-white">
-      <h1 className="text-4xl font-bold text-center text-white bg-cyan-900 mb-2">Dear Diary,</h1>
-      <p className="text-center text-white bg-cyan-900 mb-6 text-lg">Your thoughts are safe with us!</p>
+      <h1 className="text-4xl font-extrabold text-center text-blue-800 mb-2">Dear Diary,</h1>
+      <p className="text-center text-blue-800 mb-6 text-lg">Your thoughts are safe with us!</p>
 <TopMenuButton />
       {message && (
         <div className="text-center text-black/70 bg-blue-200 font-medium mb-4">{message}</div>

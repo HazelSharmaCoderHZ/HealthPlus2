@@ -672,39 +672,93 @@ export default function HomePage() {
       </div>
 
       {/* ══════════════════════════════════════ */}
-      {/* FEATURES                              */}
-      {/* ══════════════════════════════════════ */}
-      <section id="features" style={{ background: 'white', padding: '7rem 4rem' }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-            <div style={{
-              display: 'inline-block', fontSize: '.75rem', letterSpacing: '.16em',
-              textTransform: 'uppercase', color: '#2563eb', fontWeight: 600, marginBottom: '.8rem',
-            }}>What you get</div>
-            <h2 style={{
-              fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem,4vw,3.2rem)',
-              fontWeight: 800, color: '#0f172a', letterSpacing: '-0.03em', lineHeight: 1.15,
-            }}>
-              Everything you need to<br />
-              <em style={{ fontStyle: 'italic', color: '#2563eb' }}>stay healthy</em>
-            </h2>
-          </div>
+{/* FEATURES (VIDEO + CARDS SPLIT)        */}
+{/* ══════════════════════════════════════ */}
+<section id="features" style={{ background: 'white', padding: '7rem 4rem' }}>
+  <div style={{
+    maxWidth: 1200,
+    margin: '0 auto',
+    display: 'grid',
+    gridTemplateColumns: '40% 60%',
+    gap: '3rem',
+    alignItems: 'start'
+  }}>
 
-          <div style={{
-            display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px,1fr))',
-            gap: '1.5rem',
-          }}>
-            {[
-              { icon: '🍎', title: 'AI Nutrition Scanner', desc: 'Point your camera at any meal. Get instant macro breakdowns, calorie counts, and personalized dietary advice.', delay: 0 },
-              { icon: '📅', title: 'Diet Calendar', desc: 'Visualize long-term eating patterns. Spot macro trends and optimize your full diet plan over weeks and months.', delay: 100 },
-              { icon: '👨‍🍳', title: 'Curated Recipes', desc: 'Healthy, customizable recipes tailored to your dietary needs — with full nutritional breakdowns.', delay: 200 },
-              { icon: '💧', title: 'Hydration Tracker', desc: 'Stay consistently hydrated with personalized goals, smart reminders, and dynamic daily water intake tracking.', delay: 0 },
-              { icon: '🌙', title: 'Advanced Sleep Log', desc: 'Log detailed sleep data, analyze cycles, and improve recovery quality with deep nocturnal insights.', delay: 100 },
-              { icon: '📊', title: 'Progress Analysis', desc: 'Visualize shared and individual progress through clean, actionable charts to maintain motivation.', delay: 200 },
-            ].map(f => <FeatureCard key={f.title} {...f} />)}
-          </div>
+    {/* ── LEFT: VIDEO ── */}
+    <div style={{
+      position: 'sticky',
+      top: '100px',
+      height: 'fit-content',
+      display: 'flex',
+      justifyContent: 'center'
+    }}>
+      <video
+        src="/health.mp4"   
+        autoPlay
+        loop
+        muted
+        playsInline
+        style={{
+          width: '100%',
+          maxWidth: '280px',
+          borderRadius: '24px',
+          objectFit: 'cover',
+          boxShadow: '0 20px 60px rgba(37,99,235,0.2)',
+          border: '4px solid #e0eaff'
+        }}
+      />
+    </div>
+
+    {/* ── RIGHT: CONTENT ── */}
+    <div>
+      {/* Heading */}
+      <div style={{ marginBottom: '3rem' }}>
+        <div style={{
+          fontSize: '.75rem',
+          letterSpacing: '.16em',
+          textTransform: 'uppercase',
+          color: '#2563eb',
+          fontWeight: 600,
+          marginBottom: '.8rem',
+        }}>
+          What you get
         </div>
-      </section>
+
+        <h2 style={{
+          fontFamily: 'var(--font-display)',
+          fontSize: 'clamp(2rem,4vw,3.2rem)',
+          fontWeight: 800,
+          color: '#0f172a',
+          letterSpacing: '-0.03em',
+          lineHeight: 1.15,
+        }}>
+          Everything you need to<br />
+          <em style={{ fontStyle: 'italic', color: '#2563eb' }}>
+            stay healthy
+          </em>
+        </h2>
+      </div>
+
+      {/* Cards */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(2, 1fr)',
+        gap: '1.5rem'
+      }}>
+        {[
+          { icon: '🍎', title: 'AI Nutrition Scanner', desc: 'Point your camera at any meal. Get instant macro breakdowns, calorie counts, and personalized dietary advice.', delay: 0 },
+          { icon: '📅', title: 'Diet Calendar', desc: 'Visualize long-term eating patterns. Spot macro trends and optimize your full diet plan over weeks and months.', delay: 100 },
+          { icon: '👨‍🍳', title: 'Curated Recipes', desc: 'Healthy, customizable recipes tailored to your dietary needs — with full nutritional breakdowns.', delay: 200 },
+          { icon: '🤝',  title: 'Connect & Share', desc: 'Connect with friends and family, share your progress, celebrate milestones, and stay motivated together with real-time stats and insights.', delay: 300 },
+          { icon: '💧', title: 'Hydration Tracker', desc: 'Stay consistently hydrated with personalized goals, smart reminders, and dynamic daily water intake tracking.', delay: 0 },
+          { icon: '🌙', title: 'Advanced Sleep Log', desc: 'Log detailed sleep data, analyze cycles, and improve recovery quality with deep nocturnal insights.', delay: 100 },
+          { icon: '📊', title: 'Progress Analysis', desc: 'Visualize shared and individual progress through clean, actionable charts to maintain motivation.', delay: 200 },
+        ].map(f => <FeatureCard key={f.title} {...f} />)}
+      </div>
+    </div>
+
+  </div>
+</section>
 
       {/* ── SHARED HEALTH SECTION ── */}
       <section id="shared" style={{ background: '#f0f7ff', padding: '8rem 4rem' }}>

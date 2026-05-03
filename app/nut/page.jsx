@@ -125,7 +125,7 @@ export default function NutritionCalendar() {
             <p className="mt-3 text-xs text-slate-800">
               Tip: Log items from the{" "}
               <span className="font-semibold text-slate-800">
-                Know Your Food
+                Food Insights
               </span>{" "}
               section to see them appear here.
             </p>
@@ -247,7 +247,7 @@ export default function NutritionCalendar() {
                 <p className="font-medium">No data for this day yet.</p>
                 <p className="mt-1 text-xs text-slate-700">
                   Log a food item using{" "}
-                  <span className="font-semibold">Know Your Food</span> and it
+                  <span className="font-semibold">Food Insights</span> and it
                   will automatically appear in your calendar summary.
                 </p>
               </div>

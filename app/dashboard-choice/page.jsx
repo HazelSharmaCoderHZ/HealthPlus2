@@ -84,56 +84,89 @@ export default function DashboardChoicePage() {
   }
 
   return (
+    <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12 relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-blue-100">
+
+  {/* 🔵 BACKGROUND GLOWS */}
+  <div className="absolute w-[400px] h-[400px] bg-blue-200/30 blur-3xl rounded-full top-[-100px] left-[-100px]" />
+  <div className="absolute w-[300px] h-[300px] bg-indigo-300/20 blur-3xl rounded-full bottom-[-80px] right-[-80px]" />
+
+  <TopMenuButton />
+
+  {/* 🏷️ HEADER */}
+  <div className="text-center mb-12 z-10">
+    <h1 className="text-4xl md:text-5xl font-extrabold text-blue-900">
+      How do you want to track today?
+    </h1>
+    
+  </div>
+
+  {/* 🧩 OPTIONS */}
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-10 w-full max-w-5xl z-10">
+
+    {/* 👥 TEAM DASHBOARD */}
     <div
-      className="min-h-screen flex items-center justify-center px-6 py-12 relative text-white"
-      style={{
-        background: `
-          radial-gradient(circle at 20% 30%, rgba(183, 218, 226, 0.25) 0%, transparent 50%),
-          radial-gradient(circle at 80% 20%, rgba(148, 173, 250, 0.25) 0%, transparent 50%),
-          radial-gradient(circle at 50% 80%, rgba(0, 229, 255, 0.2) 0%, transparent 40%),
-          linear-gradient(to bottom, #99c8daff 0%, #6997a1ff 100%)
-        `
+      onClick={() => {
+        if (userGroups.length > 0) router.push(`/groups/${userGroups[0].id}`);
+        else router.push("/groups");
       }}
+      className="group cursor-pointer rounded-3xl p-10 bg-white/70 backdrop-blur-xl border border-blue-100 shadow-lg transition-all duration-300 hover:scale-[1.05] hover:shadow-2xl relative overflow-hidden"
     >
-      {/* Top Buttons */}
-      <TopMenuButton />
-      
+      {/* glow effect */}
+      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition bg-gradient-to-r from-blue-200/20 to-indigo-200/20" />
 
-      {/* Dashboard Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
+      <div className="relative z-10 flex flex-col items-center text-center">
 
-        {/* TEAM DASHBOARD */}
-        <div
-          onClick={() => {
-            // If group exists → open group page
-            if (userGroups.length > 0) router.push(`/groups/${userGroups[0].id}`);
-            // Else → open blank team dashboard
-            else router.push("/groups");
-          }}
-          className="cursor-pointer bg-white/50 border border-grey-500/50 backdrop-blur-xl rounded-2xl shadow-xl p-10 flex flex-col items-center justify-center hover:scale-[1.04] hover:border-blue-700 transition-transform duration-300"
-        >
-          <h2 className="text-2xl font-bold mb-4 text-blue-900 shadow-md">
-            Team Dashboard
-          </h2>
-          <p className="text-black text-center">
-            Manage teams, shared logs, and collaborative features.
-          </p>
+        <div className="w-16 h-16 mb-4 flex items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-blue-700 text-white text-2xl shadow-lg">
+          🤝
         </div>
 
-        {/* PERSONAL DASHBOARD */}
-        <div
-          onClick={() => router.push("/dashboard")}
-          className="cursor-pointer bg-white/50 border border-grey-500/50 backdrop-blur-xl rounded-2xl shadow-xl p-10 flex flex-col items-center justify-center hover:scale-[1.04] hover:border-blue-700 transition-transform duration-300"
-        >
-          <h2 className="text-2xl font-bold mb-4 text-blue-900 shadow-md">
-            Your Dashboard
-          </h2>
-          <p className="text-black text-center">
-            View your personal logs, progress, features, and insights.
-          </p>
-        </div>
+        <h2 className="text-2xl font-bold text-blue-900 mb-2">
+          Team Dashboard
+        </h2>
 
+        <p className="text-gray-600 text-sm mb-4">
+          Track progress together, stay accountable, and grow with your circle.
+        </p>
+
+        <span className="text-blue-600 font-semibold text-sm group-hover:translate-x-1 transition">
+          {userGroups.length > 0 ? "Continue your group →" : "Start a team →"}
+        </span>
       </div>
     </div>
+
+    {/* 👤 PERSONAL DASHBOARD */}
+    <div
+      onClick={() => router.push("/dashboard")}
+      className="group cursor-pointer rounded-3xl p-10 bg-white/70 backdrop-blur-xl border border-blue-100 shadow-lg transition-all duration-300 hover:scale-[1.05] hover:shadow-2xl relative overflow-hidden"
+    >
+      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition bg-gradient-to-r from-blue-200/20 to-indigo-200/20" />
+
+      <div className="relative z-10 flex flex-col items-center text-center">
+
+        <div className="w-16 h-16 mb-4 flex items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-blue-700 text-white text-2xl shadow-lg">
+          📊
+        </div>
+
+        <h2 className="text-2xl font-bold text-blue-900 mb-2">
+          Your Dashboard
+        </h2>
+
+        <p className="text-gray-600 text-sm mb-4">
+          Focus on your personal goals, habits, and daily health insights.
+        </p>
+
+        <span className="text-blue-600 font-semibold text-sm group-hover:translate-x-1 transition">
+          Go to dashboard →
+        </span>
+      </div>
+    </div>
+
+  </div>
+
+  {/* ✨ SUBTLE FLOATING ELEMENTS */}
+  <div className="absolute top-20 left-10 text-blue-400 opacity-20 animate-bounce">💧</div>
+  <div className="absolute bottom-20 right-10 text-blue-400 opacity-20 animate-bounce delay-200">❤️</div>
+
+</div>
   );
 }
