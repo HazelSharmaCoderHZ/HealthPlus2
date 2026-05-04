@@ -925,7 +925,7 @@ export default function SleepLogPage() {
 
       <button
         onClick={() => router.push("/dashboard")}
-        className="mt-8 mb-4 px-5 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-white transition"
+        className="mt-8 mb-4 px-5 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-500 transition"
       >
         ⬅ Back to Dashboard
       </button>

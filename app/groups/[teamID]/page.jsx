@@ -226,7 +226,7 @@ export default function TeamPage() {
           </button>
           <div className="flex-1">
             {loading ? (
-              <div className="h-7 w-40 bg-blue-100 rounded-lg animate-pulse" />
+              <div className="h-7 w-40 bg-blue-100 rounded-lg" />
             ) : (
               <h1 className="text-2xl font-black text-slate-900">{team?.name ?? "Team"}</h1>
             )}
@@ -375,7 +375,7 @@ export default function TeamPage() {
                           </span>
                           <span className="ml-auto flex items-center gap-1">
                             <CheckCircle2 className="w-3 h-3 text-green-500" />
-                            {readCount} read
+                            {readCount-1} read
                           </span>
                         </div>
                       </li>
