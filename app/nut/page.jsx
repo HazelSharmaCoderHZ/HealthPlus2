@@ -122,13 +122,18 @@ export default function NutritionCalendar() {
                 className="react-calendar-custom p-2 text-black"
               />
             </div>
-            <p className="mt-3 text-xs text-slate-800">
-              Tip: Log items from the{" "}
-              <span className="font-semibold text-slate-800">
-                Food Insights
-              </span>{" "}
-              section to see them appear here.
-            </p>
+            <div className="mt-4 flex flex-col items-start gap-2 text-xs text-slate-800">
+  <p>
+    Tip: Log your meals to see them appear here.
+  </p>
+
+  <button
+    onClick={() => router.push("/calorie")}
+    className="px-3 py-1 rounded-lg bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 transition"
+  >
+    ➕ Go to Food Insights
+  </button>
+</div>
           </div>
 
           {/* Summary card */}
@@ -245,11 +250,18 @@ export default function NutritionCalendar() {
               <div className="mt-4 flex flex-col items-center justify-center text-center text-sm text-slate-800">
                 <div className="text-3xl mb-2">📭</div>
                 <p className="font-medium">No data for this day yet.</p>
-                <p className="mt-1 text-xs text-slate-700">
-                  Log a food item using{" "}
-                  <span className="font-semibold">Food Insights</span> and it
-                  will automatically appear in your calendar summary.
-                </p>
+                <div className="mt-2 flex flex-col items-center gap-2">
+  <p className="text-xs text-slate-700">
+    Start logging your meals to see insights here.
+  </p>
+
+  <button
+    onClick={() => router.push("/calorie")}
+    className="px-4 py-1 rounded-lg bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 transition"
+  >
+    🍽️ Add Food Now
+  </button>
+</div>
               </div>
             )}
           </div>
