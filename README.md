@@ -1,6 +1,7 @@
   🧠 HealthPlus – Smart Health Companion
 HealthPlus is a full-stack health tracking platform with an integrated AI assistant, designed to help users monitor, analyze, and improve their overall well-being.
 
+   
    ⚙️ Tech Stack
 
 * **Frontend:** Next.js, React, Tailwind CSS
@@ -14,7 +15,9 @@ HealthPlus is a full-stack health tracking platform with an integrated AI assist
 * Chat history with persistent storage
 * Designed to act as a personal health assistant
 
-   🧩 Features
+
+
+  🧩 Features
 
     1. Nutritional Wellbeing
 
@@ -44,7 +47,8 @@ HealthPlus is a full-stack health tracking platform with an integrated AI assist
 
 
 
-   🔮 Future Scope
+
+  🔮 Future Scope
 
 * AI-based health insights & predictions
 * Mood detection using NLP
