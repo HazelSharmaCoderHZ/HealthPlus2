@@ -212,7 +212,7 @@ function DoctorCharacter() {
         animation: 'statPill 3s ease-in-out infinite',
         whiteSpace: 'nowrap',
       }}>
-        ✓ 8,240 steps today
+        ✓ 3000 calories today
       </div>
       <div style={{
         position: 'absolute', bottom: 100, right: -40, zIndex: 10,
@@ -585,7 +585,7 @@ export default function HomePage() {
             animation: 'fadeSlideUp 0.8s ease 0.2s both',
           }}>
             The only wellness platform built for <strong style={{ color: '#1e40af', fontWeight: 600 }}>shared accountability</strong>.
-            Real-time health dashboards for individuals, families, and teams — powered by AI.
+            Real-time health dashboards for individuals, families, and teams- powered by AI.
           </p>
 
           <div style={{
@@ -618,10 +618,30 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* ── RIGHT: Doctor character ── */}
-        <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'center', alignItems: 'flex-end' }}>
-          <DoctorCharacter />
-        </div>
+        {/* ── RIGHT: VIDEO ── */}
+<div style={{ 
+  position: 'relative', 
+  zIndex: 2, 
+  display: 'flex', 
+  justifyContent: 'center', 
+  alignItems: 'center' 
+}}>
+  <video
+    src="/health.mp4"
+    autoPlay
+    loop
+    muted
+    playsInline
+    style={{
+      width: '100%',
+      maxWidth: '320px',
+      borderRadius: '28px',
+      objectFit: 'cover',
+      boxShadow: '0 20px 60px rgba(37,99,235,0.2)',
+      border: '4px solid #e0eaff'
+    }}
+  />
+</div>
 
         {/* Scroll cue */}
         <div style={{
@@ -684,30 +704,16 @@ export default function HomePage() {
     alignItems: 'start'
   }}>
 
-    {/* ── LEFT: VIDEO ── */}
-    <div style={{
-      position: 'sticky',
-      top: '100px',
-      height: 'fit-content',
-      display: 'flex',
-      justifyContent: 'center'
-    }}>
-      <video
-        src="/health.mp4"   
-        autoPlay
-        loop
-        muted
-        playsInline
-        style={{
-          width: '100%',
-          maxWidth: '280px',
-          borderRadius: '24px',
-          objectFit: 'cover',
-          boxShadow: '0 20px 60px rgba(37,99,235,0.2)',
-          border: '4px solid #e0eaff'
-        }}
-      />
-    </div>
+    {/* ── LEFT: DOCTOR ── */}
+<div style={{
+  position: 'sticky',
+  top: '80px',
+  height: 'fit-content',
+  display: 'flex',
+  justifyContent: 'center'
+}}>
+  <DoctorCharacter />
+</div>
 
     {/* ── RIGHT: CONTENT ── */}
     <div>
@@ -1018,6 +1024,7 @@ export default function HomePage() {
             { label: 'Email', href: 'mailto:sharmahazel310@gmail.com' },
             { label: 'GitHub', href: 'https://github.com/HazelSharmaCoderHZ' },
             { label: 'LinkedIn', href: 'https://www.linkedin.com/in/hazelsharma-it/' },
+            { label: 'Meet the author', href: 'https://hazel-sharma.vercel.app/' },
           ].map(l => (
             <a key={l.label} href={l.href} target="_blank" rel="noopener noreferrer"
               style={{ color: '#64748b', textDecoration: 'none', fontSize: '.85rem', fontWeight: 500, transition: 'color .2s' }}
@@ -1027,7 +1034,7 @@ export default function HomePage() {
             </a>
           ))}
         </div>
-        <div style={{ fontSize: '.8rem', color: '#94a3b8' }}>HealthPlus © 2025 · All Rights Reserved.</div>
+        <div style={{ fontSize: '.8rem', color: '#94a3b8' }}>HealthPlus © 2026 · All Rights Reserved.</div>
       </footer>
     </>
   );
