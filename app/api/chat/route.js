@@ -1,3 +1,5 @@
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
 export async function POST(req) {
   try {
     const { message, history = [], healthContext = "" } = await req.json();
@@ -34,7 +36,7 @@ export async function POST(req) {
       ? `User's health data for today:\n${healthContext}\nUse this data naturally to personalise your answer if relevant. Do not list it back verbatim.\n\n`
       : "";
 
-    const prompt = `You are a warm, knowledgeable AI health assistant named Aria.
+    const prompt = `You are a warm, knowledgeable AI health assistant named HealthBot.
 
 Rules:
 - Be direct, calm, and empathetic.
@@ -52,54 +54,58 @@ Mode guidance: ${modeGuide[mode] || modeGuide.general}
 
 ${healthBlock}${historyText ? `Conversation so far:\n${historyText}\n\n` : ""}User: ${message}
 
-Aria:`;
+HealthBot:`;
 
-    const ollamaBaseUrl =
-      process.env.OLLAMA_BASE_URL || (process.env.VERCEL ? "" : "http://localhost:11434");
-    const ollamaModel = process.env.OLLAMA_MODEL || "llama3:8b";
+    const geminiApiKey = process.env.GEMINI_API_KEY;
+    const geminiModel = process.env.GEMINI_MODEL || "gemini-2.5-flash";
 
-    if (!ollamaBaseUrl) {
+    if (!geminiApiKey) {
       return Response.json(
         {
           error:
-            "HealthBot is not configured for deployment. Set OLLAMA_BASE_URL in Vercel to a public Ollama server, or use a hosted AI provider.",
+            "HealthBot is not configured. Set GEMINI_API_KEY in your environment variables.",
         },
         { status: 503 }
       );
     }
 
-    const headers = { "Content-Type": "application/json" };
-    if (process.env.OLLAMA_API_KEY) {
-      headers.Authorization = `Bearer ${process.env.OLLAMA_API_KEY}`;
-    }
-
-    const ollamaRes = await fetch(`${ollamaBaseUrl.replace(/\/$/, "")}/api/generate`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({
-        model: ollamaModel,
-        prompt,
-        stream: true,
-        options: {
-          temperature: 0.65,
-          top_p: 0.9,
-          repeat_penalty: 1.15,
-          num_predict: 180,
-        },
-      }),
+    const genAI = new GoogleGenerativeAI(geminiApiKey);
+    const model = genAI.getGenerativeModel({
+      model: geminiModel,
+      generationConfig: {
+        temperature: 0.65,
+        topP: 0.9,
+        maxOutputTokens: 180,
+      },
     });
 
-    if (!ollamaRes.ok || !ollamaRes.body) {
-      const details = await ollamaRes.text().catch(() => "");
-      console.error("[CHAT API] Ollama error:", ollamaRes.status, details);
-      return Response.json(
-        { error: "HealthBot could not connect to the local AI model." },
-        { status: 502 }
-      );
-    }
+    const result = await model.generateContentStream(prompt);
+    const encoder = new TextEncoder();
 
-    return new Response(ollamaRes.body, {
-      headers: { "Content-Type": "application/x-ndjson" },
+    const stream = new ReadableStream({
+      async start(controller) {
+        try {
+          for await (const chunk of result.stream) {
+            const text = chunk.text();
+            if (text) {
+              controller.enqueue(
+                encoder.encode(`${JSON.stringify({ response: text })}\n`)
+              );
+            }
+          }
+          controller.close();
+        } catch (err) {
+          console.error("[CHAT API] Gemini stream failed:", err);
+          controller.error(err);
+        }
+      },
+    });
+
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "application/x-ndjson",
+        "Cache-Control": "no-cache",
+      },
     });
   } catch (err) {
     console.error("[CHAT API] Failed:", err);
