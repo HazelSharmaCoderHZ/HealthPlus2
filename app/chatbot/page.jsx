@@ -280,17 +280,26 @@ export default function ChatbotPage() {
       const reader  = res.body.getReader();
       const decoder = new TextDecoder();
       let botText   = "";
+      let streamBuffer = "";
 
       while (true) {
         const { done, value } = await reader.read();
-        if (done) break;
-        const chunk = decoder.decode(value);
-        for (const line of chunk.split("\n")) {
+        if (done) {
+          streamBuffer += decoder.decode();
+          break;
+        }
+        streamBuffer += decoder.decode(value, { stream: true });
+        const lines = streamBuffer.split("\n");
+        streamBuffer = lines.pop() || "";
+
+        for (const line of lines) {
           if (!line.trim()) continue;
           try {
             const json = JSON.parse(line);
             botText += json.response || "";
-          } catch {}
+          } catch (err) {
+            console.warn("Dropped malformed HealthBot stream line:", err);
+          }
         }
         setMessages((prev) => {
           const updated = [...prev];
@@ -298,6 +307,21 @@ export default function ChatbotPage() {
           return updated;
         });
       }
+
+      if (streamBuffer.trim()) {
+        try {
+          const json = JSON.parse(streamBuffer);
+          botText += json.response || "";
+        } catch (err) {
+          console.warn("Dropped incomplete HealthBot stream tail:", err);
+        }
+      }
+
+      setMessages((prev) => {
+        const updated = [...prev];
+        updated[updated.length - 1] = { sender: "bot", text: botText || "I could not generate a reply. Please try again." };
+        return updated;
+      });
 
       await saveMessage(currentChatId, "bot", botText || "I could not generate a reply. Please try again.");
     } catch (err) {

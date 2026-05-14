@@ -48,6 +48,11 @@ Rules:
 - Do not start with "Great question!" or similar filler.
 - Speak naturally, like a knowledgeable friend.
 - If today's health data is provided, reference it naturally when relevant.
+- Default to India-specific guidance unless the user asks about another country.
+- Use Indian context for food, lifestyle, seasons, routines, healthcare access, and examples.
+- Use metric units such as kg, cm, ml, litres, and Celsius.
+- Do not mention US or Canada phone numbers, holidays, insurance systems, or traditions unless the user explicitly asks.
+- For urgent medical help in India, suggest calling 108 or 112, or going to the nearest emergency department.
 
 Mode: ${mode}
 Mode guidance: ${modeGuide[mode] || modeGuide.general}
@@ -75,27 +80,34 @@ HealthBot:`;
       generationConfig: {
         temperature: 0.65,
         topP: 0.9,
-        maxOutputTokens: 180,
+        maxOutputTokens: 700,
       },
     });
 
-    const result = await model.generateContentStream(prompt);
+    const result = await model.generateContent(prompt);
+    const responseText = result.response.text().trim();
+
+    if (!responseText) {
+      return Response.json(
+        { error: "HealthBot could not generate a complete reply." },
+        { status: 502 }
+      );
+    }
+
     const encoder = new TextEncoder();
+    const responseParts = responseText.match(/.{1,48}(\s|$)/g) || [responseText];
 
     const stream = new ReadableStream({
-      async start(controller) {
+      start(controller) {
         try {
-          for await (const chunk of result.stream) {
-            const text = chunk.text();
-            if (text) {
-              controller.enqueue(
-                encoder.encode(`${JSON.stringify({ response: text })}\n`)
-              );
-            }
+          for (const part of responseParts) {
+            controller.enqueue(
+              encoder.encode(`${JSON.stringify({ response: part })}\n`)
+            );
           }
           controller.close();
         } catch (err) {
-          console.error("[CHAT API] Gemini stream failed:", err);
+          console.error("[CHAT API] Response stream failed:", err);
           controller.error(err);
         }
       },
