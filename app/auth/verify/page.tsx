@@ -103,7 +103,7 @@ export default function VerifyEmailPage() {
             {status ? (
               <p className="text-center text-sm text-blue-600 dark:text-blue-400">{status}</p>
             ) : (
-              <p className="text-center mr-6 ml-6 text-grey-700">If you don't see the email, check your spam folder.<br></br> If still not recieved, click on resend link.<br></br></p> 
+              <p className="text-center mr-6 ml-6 text-grey-700">If you don't see the email, check your spam folder.<br></br> If still not recieved, click on resend link.<br>If verified, kindly reload this page.</br></p> 
             )}
           </div>
             <button

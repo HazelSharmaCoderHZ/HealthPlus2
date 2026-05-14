@@ -230,17 +230,6 @@ export default function ChatbotPage() {
     let currentChatId = chatId;
     let isNewChat = false;
 
-    if (!currentChatId) {
-      const ref = await addDoc(collection(db, "users", user.uid, "chats"), {
-        createdAt: serverTimestamp(),
-        title: "New Chat",
-      });
-      currentChatId = ref.id;
-      setChatId(currentChatId);
-      isNewChat = true;
-      loadChats();
-    }
-
     setMessages((prev) => [
       ...prev,
       { sender: "user", text: message },
@@ -250,25 +239,43 @@ export default function ChatbotPage() {
     setLoading(true);
     if (textareaRef.current) textareaRef.current.style.height = "auto";
 
-    await saveMessage(currentChatId, "user", message);
-    const history = await fetchHistory(currentChatId);
-
-    if (isNewChat) {
-      generateTitle(message).then(async (title) => {
-        await updateDoc(doc(db, "users", user.uid, "chats", currentChatId), { title });
-        loadChats();
-      });
-    }
-
-    // Build health context string to enrich the prompt
-    const healthContext = buildHealthContext();
-
     try {
+      if (!currentChatId) {
+        const ref = await addDoc(collection(db, "users", user.uid, "chats"), {
+          createdAt: serverTimestamp(),
+          title: "New Chat",
+        });
+        currentChatId = ref.id;
+        setChatId(currentChatId);
+        isNewChat = true;
+        loadChats();
+      }
+
+      await saveMessage(currentChatId, "user", message);
+      const history = await fetchHistory(currentChatId);
+
+      if (isNewChat) {
+        generateTitle(message)
+          .then(async (title) => {
+            await updateDoc(doc(db, "users", user.uid, "chats", currentChatId), { title });
+            loadChats();
+          })
+          .catch((err) => console.warn("Chat title update failed:", err));
+      }
+
+      // Build health context string to enrich the prompt
+      const healthContext = buildHealthContext();
+
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message, history, healthContext }),
       });
+
+      if (!res.ok || !res.body) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error || `HealthBot request failed (${res.status})`);
+      }
 
       const reader  = res.body.getReader();
       const decoder = new TextDecoder();
@@ -292,8 +299,9 @@ export default function ChatbotPage() {
         });
       }
 
-      await saveMessage(currentChatId, "bot", botText);
-    } catch {
+      await saveMessage(currentChatId, "bot", botText || "I could not generate a reply. Please try again.");
+    } catch (err) {
+      console.error("HealthBot send failed:", err);
       setMessages((prev) => {
         const updated = [...prev];
         updated[updated.length - 1] = { sender: "bot", text: "⚠️ Something went wrong. Please try again." };
