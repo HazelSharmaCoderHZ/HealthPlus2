@@ -35,6 +35,11 @@ export default function DashboardPage() {
         { label: "BMI Calculator", href: "/bmi" },
         { label: "Sleep Tracker", href: "/sleep" },
         { label: "Sleep Calendar", href: "/sleepcal" },
+        {
+  label: "Diabetes Predictor",
+  href: "/diabetes",
+  ai: true
+}
       ],
     },
     {
@@ -119,7 +124,14 @@ export default function DashboardPage() {
                     href={item.href}
                     className="px-4 py-2 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium transition"
                   >
-                    {item.label}
+                    <div className="flex items-center justify-between">
+                      <span>{item.label}</span>
+                      {item.ai && (
+                        <span className="text-[10px] px-2 py-1 rounded-full bg-blue-600 text-white ">
+                          AI
+                        </span>
+                      )}
+                    </div>
                   </Link>
                 ))}
               </div>
